@@ -2,7 +2,7 @@ const path = require("path")
 const HtmlWebpackPlugin = require("html-webpack-plugin")
 
 module.exports = {
-  entry: './src/index.js',
+  entry: [ "babel-polyfill", "./src/index.js" ],
   output: {
     publicPath: '/',
     path: path.resolve(__dirname, "public"),
@@ -20,6 +20,9 @@ module.exports = {
         use: ["style-loader", "css-loader"]
       }
     ]
+  },
+  resolve: {
+    extensions: [".js",".jsx"]
   },
   plugins: [
     new HtmlWebpackPlugin({

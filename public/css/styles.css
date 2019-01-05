@@ -2,6 +2,10 @@ body {
   font-size: .875rem;
 }
 
+.sticky-top {
+  z-index: 101;
+}
+
 .feather {
   width: 16px;
   height: 16px;
@@ -90,3 +94,29 @@ body {
 
 .border-top { border-top: 1px solid #e5e5e5; }
 .border-bottom { border-bottom: 1px solid #e5e5e5; }
+
+.form-login {
+  max-width: 330px;
+  margin: auto;
+  margin-top: 150px;
+}
+
+.form-login img {
+  margin: auto;
+  display: block;
+}
+
+.group {
+  border-bottom: 1px solid;
+  padding: 5px 0;
+}
+
+.group .group-name {
+  cursor: pointer;
+}
+
+.group .group-name:hover {
+  color: blue;
+}
+
+

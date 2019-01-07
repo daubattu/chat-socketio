@@ -2,9 +2,9 @@ import React, { Fragment } from "react"
 import Message from "./Message";
 
 function Messages(props) {
-  const { messages } = props
+  const { messages, isMe } = props
   return (
-    <div className="list-messages">
+    <div className="list-messages" style={{ marginTop: "10px" }}>
       {
         messages
         &&
@@ -12,7 +12,7 @@ function Messages(props) {
           { 
             messages.map((message, index) => {
             return (
-              <Message key={message._id || index} message={message} />
+              <Message key={message._id || index} message={message} isMe={isMe} />
             )
           })
           }

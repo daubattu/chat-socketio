@@ -4,8 +4,14 @@ import { BrowserRouter as Router, Route, Switch } from "react-router-dom"
 import { Provider } from "react-redux"
 import routers from "./routers"
 import { setAuthorizationHeader } from "./utills"
-
+import { setCurrentUser, handleLogOut } from "./actions/auth"
 import store from "./store"
+
+if(localStorage.tokenJWT) {
+  store.dispatch(setCurrentUser(localStorage.tokenJWT))
+} else {
+  store.dispatch(handleLogOut())
+}
 
 setAuthorizationHeader(localStorage.tokenJWT)
 

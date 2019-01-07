@@ -13,6 +13,9 @@ const app = express()
 const server = http.Server(app)
 const io = socketIO(server)
 
+// define golobal variable io to access in routers
+global.io = io
+
 // define redis client
 // const client = redis.createClient()
 // client.on('connect', () => console.log('Redis client connected successful'))
@@ -75,13 +78,13 @@ io.on("connection", socket => {
       socket.to(socket.rooms[keys[i]]).emit('unTyping')
     }
   })
-  socket.on("sendNewMessage", data => {
-    const keys = Object.keys(socket.rooms)
+  // socket.on("sendNewMessage", data => {
+  //   const keys = Object.keys(socket.rooms)
 
-    for (let i = 0; i < keys.length; i++) {
-      socket.to(socket.rooms[keys[i]]).emit("receiveNewMessage", data)
-    }
-  })
+  //   for (let i = 0; i < keys.length; i++) {
+  //     socket.to(socket.rooms[keys[i]]).emit("receiveNewMessage", data)
+  //   }
+  // })
   socket.on("disconnect", function () {
     const keys = Object.keys(socket.rooms)
 

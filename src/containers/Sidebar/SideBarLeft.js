@@ -10,15 +10,23 @@ class SideBarLeftContainer extends Component {
     groups: []
   }
   async componentDidMount() {
+    this.mounted  = true
     await axios.get("/api/v1/groups")
       .then(responses => {
         const groups = responses.data.groups || []
-        this.setState({ groups })
-        this.props.setCurrentGroup(groups[0])
+        if(this.mounted) {
+          this.setState({ groups })
+          this.props.setCurrentGroup(groups[0])
+        }
       }, () => {
         this.setState({ groups: [] })
       })
   }
+
+  componentWillUnmount() {
+    this.mounted = false
+  }
+
   render() {
     const { groups } = this.state
     
@@ -26,7 +34,7 @@ class SideBarLeftContainer extends Component {
       <nav className="col-md-3 bg-light sidebar">
         <div className="sidebar-sticky">
           <div className="pt-3 px-4">
-            <h2>#sidebar</h2>
+            <h2>Groups</h2>
             { groups && <Groups groups={groups} setCurrentGroup={this.props.setCurrentGroup}/> }
           </div>
         </div>

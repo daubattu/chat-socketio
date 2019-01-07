@@ -14,7 +14,8 @@ async function Login(request, response) {
       if (user.comparePassword(request.body.password)) {
         const tokenJWT = jwt.sign({
           _id: user._id,
-          username: user.username
+          username: user.username,
+          avatar: user.avatar
         }, SECRET_KEY_JWT)
 
         return response.status(200).json({ status: 200, tokenJWT })

@@ -1,4 +1,5 @@
 import Message from "../../../models/Message"
+import Group from "../../../models/Group";
 
 String.prototype.replaceAll = function(search, replacement) {
   var target = this;
@@ -19,7 +20,7 @@ async function GetMessage(request, response) {
   }
 
 
-  const messages = await Message.find(query)
+  const messages = await Message.find(query).populate("user")
   
   return response.status(200).json({ status: 200, messages })
 }
@@ -34,15 +35,30 @@ async function PostMessage(request, response) {
     }
   }
 
-  new Message({
+  const group = await Group.findById(request.body.groupId)
+
+  if(!group) {
+    return response.status(404).json({ status: 404, message: "Nhóm chát không tồn tại" })
+  }
+
+  let newMessage = new Message({
     user: authenticate._id,
     group: request.body.groupId,
     createdTime: Date.now(),
     type: request.body.type,
     content: request.body.content
-  }).save()
+  })
 
-  return response.status(200).json({ status: 200 })
+  await newMessage.save()
+  
+  group.lastMesage = newMessage._id
+  await group.save()
+
+  const message = await Message.findById(newMessage._id).populate("user")
+  
+  io.sockets.to(request.body.groupId).emit("receiveNewMessage", message)
+
+  return response.status(200).json({ status: 200, message: newMessage })
 }
 
 export {

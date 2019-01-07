@@ -127,4 +127,63 @@ body {
   transform: translateY(-50%);
 }
 
+.item-message {
+  padding: 5px 10px;
+  border-radius: 3px;
+  clear: both;
+  float: left;
+  margin-bottom: 5px;
+  display: flex;
+}
+.item-message img {
+  border-radius: 50%;
+}
+.item-message.me {
+  float: right;
+  clear: both;
+  margin-bottom: 5px;
+  text-align: right;
+}
+
+.item-message.me .item-message-content {
+  background: #3578e5;
+  padding: 5px 10px;
+  border-radius: 3px;
+  color: #fff;
+}
+
+.item-message .item-message-content {
+  background: #eee;
+  padding: 5px 15px;
+  border-radius: 3px;
+  display: block;
+}
+
+.item-message .item-message-content.error {
+  color: red;
+  font-style: italic;
+}
+
+.item-message .item-message-created-time {
+  display: block;
+  margin-top: 5px;
+  text-align: left;
+  font-size: 65%;
+}
+
+.item-message.me .item-message-created-time {
+  text-align: right;
+}
+
+.extend-type-message {
+  transition: all .15s linear;
+}
+.extend-type-message i.fa-chevron-right {
+  transition: all .3s linear;
+  margin-left: 5px;
+}
+.extend-type-message.is-extend i.fa-chevron-right {
+  transform: rotate(-180deg)
+}
+
 

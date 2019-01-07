@@ -3,6 +3,8 @@ import axios from "axios"
 import Login from "../../components/Auth/Login"
 import { notification } from "antd"
 import "antd/dist/antd.css"
+import { connect } from "react-redux"
+import { setCurrentUser } from "../../actions/auth"
 
 class LoginContainer extends Component {
   state = {
@@ -33,7 +35,9 @@ class LoginContainer extends Component {
 
       await axios.post("/api/v1/auth/login", auth)
         .then(response => {
+          this.setState({ loading: false })
           localStorage.tokenJWT = response.data.tokenJWT
+          this.props.setCurrentUser(response.data.tokenJWT)
           this.props.history.push("/")
         }, error => {
           let message = "Đăng nhập không thành công"
@@ -43,12 +47,16 @@ class LoginContainer extends Component {
           }
 
           this.pushNotifycation("error", message)
+          this.setState({ loading: false })
         })
-        .catch(() => this.pushNotifycation("error", "Đăng nhập không thành công"))
-
-      this.setState({ loading: false })
+        .catch(error => {
+          console.log(error)
+          this.pushNotifycation("error", "Đăng nhập không thành công")
+          this.setState({ loading: false })
+        })
     }
   }
+
   render() {
     const { auth, loading } = this.state
     return (
@@ -61,4 +69,4 @@ class LoginContainer extends Component {
   }
 }
 
-export default LoginContainer
+export default connect(null, { setCurrentUser })(LoginContainer)

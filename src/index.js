@@ -7,8 +7,6 @@ import { setAuthorizationHeader } from "./utills"
 
 import store from "./store"
 
-console.log(store.getState())
-
 setAuthorizationHeader(localStorage.tokenJWT)
 
 ReactDOM.render(

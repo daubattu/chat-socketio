@@ -44,17 +44,50 @@ server.listen(PORT, error => {
     )
 })
 
-io.on('connection', socket => {
+io.on("connection", socket => {
   // let connecting = client.get("connecting") || []
 
   // if(connecting.)
-  // client.set("connecting", connecting)
-  socket.emit('news', { hello: 'world' })
-  socket.on('my other event', function (data) {
-    console.log(data)
+  // client.set("connecting", "1234")
+
+  // console.log(client.get("connecting"))
+
+  console.log("***_", socket.id, "connection", "_***")
+
+  socket.on("joinRoom", data => {
+    socket.join(data.groupId)
+    socket.to(data.groupId).emit("newConnection", socket.id + " have just connected to" + data.groupId)
   })
-  socket.on('disconnect', function () {
-    console.log('user disconnected');
+  socket.on("leaveRoom", data => {
+    socket.leave(data.groupId)
+  })
+  socket.on("typing", () => {
+    const keys = Object.keys(socket.rooms)
+
+    for (let i = 0; i < keys.length; i++) {
+      socket.to(socket.rooms[keys[i]]).emit('typing')
+    }
+  })
+  socket.on("unTyping", () => {
+    const keys = Object.keys(socket.rooms)
+
+    for (let i = 0; i < keys.length; i++) {
+      socket.to(socket.rooms[keys[i]]).emit('unTyping')
+    }
+  })
+  socket.on("sendNewMessage", data => {
+    const keys = Object.keys(socket.rooms)
+
+    for (let i = 0; i < keys.length; i++) {
+      socket.to(socket.rooms[keys[i]]).emit("receiveNewMessage", data)
+    }
+  })
+  socket.on("disconnect", function () {
+    const keys = Object.keys(socket.rooms)
+
+    for (let i = 0; i < keys.length; i++) {
+      socket.leave(socket.rooms[keys[i]])
+    }
+    console.log("***_", socket.id, "disconnect", "_***")
   });
-  console.log("new connection")
 })

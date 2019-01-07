@@ -1,21 +1,14 @@
 import React, { Component, Fragment } from "react"
-import socketIOClient from "socket.io-client"
 
 import { notification } from "antd"
 import "antd/dist/antd.css"
 
 import SideBarLeft from "../containers/Sidebar/SideBarLeft"
 import SideBarRight from "./SideBar/SideBarRight"
-import Chat from "../containers/Chat"
+import Chat from "../containers/Chat/index"
 import Header from "../containers/Header"
 
 class Home extends Component {
-  componentDidMount() {
-    const socket = socketIOClient("http://localhost:3000")
-
-    socket.emit("my other event", "Hello world")
-  }
-
   pushNotifycation = (type, message) => {
     notification[type]({ message })
   }

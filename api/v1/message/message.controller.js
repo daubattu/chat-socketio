@@ -51,7 +51,7 @@ async function PostMessage(request, response) {
 
   await newMessage.save()
   
-  group.lastMesage = newMessage._id
+  group.lastMessage = newMessage._id
   await group.save()
 
   const message = await Message.findById(newMessage._id).populate("user")

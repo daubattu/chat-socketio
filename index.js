@@ -4,6 +4,7 @@ import socketIO from "socket.io"
 import mongoose from "mongoose"
 import logger from "morgan"
 import bodyParser from "body-parser"
+import path from "path"
 // import redis from "redis"
 
 import { PORT, MONGO_URL } from "./configs"
@@ -31,7 +32,7 @@ app.use(bodyParser.urlencoded({ limit: "50MB", extended: false }))
 routers(app)
 
 app.get("/*", (request, response) => {
-  response.sendFile(__dirname, "/public/index.html")
+  response.sendFile(path.resolve(__dirname, "public/index.html"))
 })
 
 server.listen(PORT, error => {

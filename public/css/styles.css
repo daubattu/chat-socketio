@@ -20,7 +20,7 @@ body {
 
 .sidebar {
   position: fixed;
-  top: 0;
+  top: 48px;
   bottom: 0;
   left: 0;
   z-index: 100; /* Behind the navbar */
@@ -32,7 +32,6 @@ body {
   position: -webkit-sticky;
   position: sticky;
   height: calc(100vh - 48px);
-  padding-top: 48px;
   overflow-x: hidden;
   overflow-y: auto; /* Scrollable contents if viewport is shorter than content. */
 }
@@ -186,6 +185,75 @@ body {
 }
 .extend-type-message.is-extend i.fa-chevron-right {
   transform: rotate(-180deg)
+}
+.group {
+  display: flex;
+  align-items: center;
+}
+.group .group-avatar {
+  margin-right: 10px;
+  width: 50px;
+  height: 50px;
+  position: relative;
+}
+.group .group-avatar img {
+  height: 100%;
+  width: 100%;
+  border: 1px solid black;
+}
+.group .group-avatar-2 img {
+  width: 100%;
+}
+
+.group .group-avatar-3 img {
+  width: 50%;
+}
+
+.group .group-avatar-3 img:first-child {
+  border-right: 0;
+}
+
+.group .group-avatar-4 img:first-child {
+  width: 60%;
+}
+
+.group .group-avatar-4 img:nth-child(2) {
+  height: 50%;
+  width: 40%;
+  position: absolute;
+  top: 0;
+  border-left: 0;
+  border-bottom: 0;
+}
+
+.group .group-avatar-4 img:nth-child(3) {
+  height: 50%;
+  width: 40%;
+  position: absolute;
+  bottom: 0;
+  border-left: 0;
+}
+
+.group .group-avatar-n img {
+  width: 50%;
+  height: 50%;
+}
+
+.group .group-avatar-n img:first-child, .group .group-avatar-n img:nth-child(3) {
+  border-right: 0;
+}
+
+.group .group-avatar-n img:first-child, .group .group-avatar-n img:nth-child(2) {
+  border-bottom: 0;
+}
+
+.group .group-detail {
+  flex-grow: 1;
+}
+.group-last-message {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 

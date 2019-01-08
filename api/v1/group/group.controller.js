@@ -45,7 +45,7 @@ async function InitGroup(request, response) {
 async function GetGroup(request, response) {
   const { authenticate } = request
   try {
-    const groups = await Group.find({ members: authenticate._id }).limit(10).populate("lastMessage").populate({ path: "members", select: { username: 1, avatar: 1 } })
+    const groups = await Group.find({ members: authenticate._id }).limit(10).populate({ path: "lastMessage", populate : { path : "user", select: { username: 1, avatar: 1 } } }).populate({ path: "members", select: { username: 1, avatar: 1 } })
     return response.status(200).json({ status: 200, groups })
   } catch(error) {
     return response.status(500).json({ status: 500, message: "Oops! Something wrong!", error })

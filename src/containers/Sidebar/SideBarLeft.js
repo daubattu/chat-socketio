@@ -4,18 +4,16 @@ import { connect } from "react-redux"
 
 import Groups from "../../components/SideBar/SideBarLeft/Groups"
 import { setCurrentGroup } from "../../actions/group"
+import { initGroups } from "../../actions/groups"
 
 class SideBarLeftContainer extends Component {
-  state = {
-    groups: []
-  }
   async componentDidMount() {
     this.mounted  = true
     await axios.get("/api/v1/groups")
       .then(responses => {
         const groups = responses.data.groups || []
         if(this.mounted) {
-          this.setState({ groups })
+          this.props.initGroups(groups)
           this.props.setCurrentGroup(groups[0])
         }
       }, () => {
@@ -27,15 +25,21 @@ class SideBarLeftContainer extends Component {
     this.mounted = false
   }
 
+  isMe = userId => {
+    if(this.props.currentUser._id === userId) 
+      return true
+    return false
+  }
+
   render() {
-    const { groups } = this.state
-    
+    const { groups } = this.props
+
     return (
       <nav className="col-md-3 bg-light sidebar">
         <div className="sidebar-sticky">
           <div className="pt-3 px-4">
             <h2>Groups</h2>
-            { groups && <Groups groups={groups} setCurrentGroup={this.props.setCurrentGroup}/> }
+            <Groups currentUser={this.props.currentUser} isMe={this.isMe} groups={groups} setCurrentGroup={this.props.setCurrentGroup}/>
           </div>
         </div>
       </nav>
@@ -43,4 +47,10 @@ class SideBarLeftContainer extends Component {
   }
 }
 
-export default connect(null, { setCurrentGroup })(SideBarLeftContainer)
+function mapStateToProps(state) {
+  return {
+    groups: state.groups,
+    currentUser: state.auth.user
+  }
+}
+export default connect(mapStateToProps, { setCurrentGroup, initGroups })(SideBarLeftContainer)

@@ -6,7 +6,7 @@ import ModalMemberOfGroup from "./Modals/MemberOfGroup"
 import axios from "axios";
 import { setCurrentGroup } from "../../actions/group"
 
-let socket = socketIOClient("http://127.0.0.1:3000")
+let socket = socketIOClient("http://chatapp.stovietnam.com:3000")
 
 socket.on("newConnection", data => {
   console.log(data)

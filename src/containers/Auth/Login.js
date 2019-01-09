@@ -5,6 +5,7 @@ import { notification } from "antd"
 import "antd/dist/antd.css"
 import { connect } from "react-redux"
 import { setCurrentUser } from "../../actions/auth"
+import { setAuthorizationHeader } from "../../utills"
 
 class LoginContainer extends Component {
   state = {
@@ -37,6 +38,7 @@ class LoginContainer extends Component {
         .then(response => {
           this.setState({ loading: false })
           localStorage.tokenJWT = response.data.tokenJWT
+          setAuthorizationHeader(response.data.tokenJWT)
           this.props.setCurrentUser(response.data.tokenJWT)
           this.props.history.push("/")
         }, error => {

@@ -1,5 +1,5 @@
 import React, { Fragment } from "react"
-import { Modal, Button } from "antd"
+import { Modal, Button, Icon } from "antd"
 
 function MemberOfGroup(props) {
   const { group, visible, actions, isLoading, newMemberIds } = props
@@ -20,9 +20,12 @@ function MemberOfGroup(props) {
           {
             group.members.map((member, index) => {
               return (
-                <div key={member._id || index} style={{ display: "flex", marginBottom: "5px" }}>
-                  <img src={member.avatar} style={{ width: "30px", height: "30px", marginRight: "5px" }} />
-                  <b>{member.username}</b>
+                <div className="item-member-of-modal-members-group" onClick={() => actions.confirmDeleteMember(member)} key={member._id || index} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "5px" }}>
+                  <div>
+                    <img src={member.avatar} style={{ width: "30px", height: "30px", marginRight: "5px" }} />
+                    <b>{member.username}</b>
+                  </div>
+                  <Icon type="delete" />
                 </div>
               )
             })

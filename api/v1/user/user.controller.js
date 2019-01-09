@@ -40,6 +40,43 @@ async function InitUser (request, response) {
   return response.status(200).json({ status: 200 })
 }
 
+
+async function GetUser(request, response) {
+  try {
+    const users = await User.find({})
+    await setTimeout(() => {
+
+    }, 30000)
+    return response.status(200).json({ status: 200, users })
+  } catch(error) {
+    return response.status(500).json({ status: 500, message: "Oops! Something wrong!", error })
+  }
+}
+
+async function InitUserFriend(request, response) {
+  try {
+    const users = await User.find({})
+
+    for(let user of users) {
+      const friends = []
+      for(let u of users) {
+        if(u._id !== user._id) {
+          friends.push(u._id)
+        }
+      }
+
+      user.friends = friends
+      user.save()
+    }
+
+    return response.status(200).json({ success: true })
+  } catch(error) {
+    return response.status(500).json({ status: 500, message: "Oops! Something wrong!", error })
+  }
+}
+
 export {
-  InitUser
+  InitUser,
+  GetUser,
+  InitUserFriend
 }

@@ -4,17 +4,21 @@ import socketIOClient from "socket.io-client"
 import Chat from "../../components/Chat"
 import ModalMemberOfGroup from "./Modals/MemberOfGroup"
 import axios from "axios";
-import { setCurrentGroup } from "../../actions/group"
+import { setCurrentGroup, addMembersGroup, deleteMemberOfGroup } from "../../actions/group"
+import { handleUpdateGroup } from "../../actions/groups"
+import { Modal, notification } from "antd"
 
-let socket = socketIOClient("http://chatapp.stovietnam.com:3000")
+let socket = socketIOClient("http://localhost:3000")
 
 socket.on("newConnection", data => {
   console.log(data)
 })
 
+const confirm = Modal.confirm
+
 class ChatContainer extends Component {
   state = {
-    messages: null,
+    messages: [],
     message: {
       type: "text",
       content: null,
@@ -24,12 +28,14 @@ class ChatContainer extends Component {
       listMembers: false
     },
     loading: {
-      addNewMember: false
+      addNewMember: false,
+      deleteMember: false
     },
     newMemberIds: [],
     socket: null,
     isTyping: false,
-    openExtendTypeMessage: false
+    openExtendTypeMessage: false,
+    deleteMemberId: null
   }
 
   scrollToBottomOfWrapperMessages() {
@@ -80,14 +86,62 @@ class ChatContainer extends Component {
     }
   }
 
+  pushNotifycation = (type, message) => {
+    notification[type]({ message })
+  }
+
   actions = {
+    confirmDeleteMember: deleteMember => {
+      let _this = this
+      const { group } = this.props
+  
+      confirm({
+        title: `Bạn có thực sự muốn xóa người dùng ${ deleteMember.name || deleteMember.username } khỏi nhóm chat ${ group.name }?`,
+        width: "30%",
+        onOk() {
+          return new Promise((resolve, reject) => {
+            axios.delete(`/api/v1/groups/${group._id}/members`, {
+              params: {
+                deleteMemberId: deleteMember._id
+              }
+            }).then(() => {
+                _this.pushNotifycation("success", `Xóa người dùng ${ deleteMember.name || deleteMember.username } khỏi nhóm chat ${ group.name } thành công`)
+                const members = group.members
+
+                for(let i = 0; i < members.length; i++) {
+                  if(members[i]._id === deleteMember._id) {
+                    _this.props.deleteMemberOfGroup(members[i]._id)
+                    break
+                  }
+                }
+                _this.actions.handleChangeStatusModal("listMembers")
+                _this.props.handleUpdateGroup({ ...group, members: [...group.members].filter(member => member._id !== deleteMember._id) })
+                resolve()
+              }, error => {
+                let message = `Xóa người dùng ${ deleteMember.name || deleteMember.username } khỏi nhóm chat ${ group.name } không thành công`
+  
+                if(error.response.data.message) {
+                  message = error.response.data.message
+                }
+  
+                _this.pushNotifycation("error", message)
+                reject()
+              })
+          })
+        },
+        onCancel() {},
+      })
+    },
     handleChangeNewMemberIds: newMemberIds => this.setState({ newMemberIds }),
     handleChangeStatusModal: modalName => {
-      let { openModal } = this.state
+      let { openModal, newMemberIds } = this.state
 
       openModal[modalName] = !openModal[modalName]
 
-      this.setState({ openModal })
+      if(modalName === "lisMembers") {
+        newMemberIds = ""
+      }
+      this.setState({ openModal, newMemberIds })
     },
     handleChangeStateOpenExtendTypeMessage: () => {
       this.setState({ openExtendTypeMessage: !this.state.openExtendTypeMessage })
@@ -100,10 +154,12 @@ class ChatContainer extends Component {
 
       this.setState({ loading })
 
-      await axios.put(`/api/v1/groups/${group._id}`, { newMemberIds: newMemberIds.split(",") })
+      await axios.post(`/api/v1/groups/${group._id}/members`, { newMemberIds: newMemberIds.split(",") })
         .then(response => {
           this.props.pushNotifycation("success", "Thêm thành viên vào nhóm " + group.name + " thành công")
-          this.props.setCurrentGroup(response.data.group)
+          this.props.addMembersGroup(response.data.newMembers)
+          this.actions.handleChangeStatusModal("listMembers")
+          this.props.handleUpdateGroup({ ...group, members: [...group.members, ...response.data.newMembers] })
         }, error => {
           let message = "Thêm thành viên vào nhóm " + group.name + " không thành công"
 
@@ -190,4 +246,4 @@ function mapStateToProps(state) {
   }
 }
 
-export default connect(mapStateToProps, { setCurrentGroup })(ChatContainer)
+export default connect(mapStateToProps, { setCurrentGroup, deleteMemberOfGroup, addMembersGroup, handleUpdateGroup })(ChatContainer)

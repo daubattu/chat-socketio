@@ -5,13 +5,13 @@ const Schema = mongoose.Schema
 const MessageSchema = new Schema({
   user: { type: Schema.Types.ObjectId, ref: "User" },
   group: { type: Schema.Types.ObjectId, ref: "Group" },
-  createdTime: { type: Number, default: Date.now() },
-  membersReaded: [
+  createdTime: { type: Number, default: Date.now()},
+  memberReaded: [
     { type: Schema.Types.ObjectId, ref: "User" }
   ],
-  type: String,
+  type: { type: String, default: "text" },
   content: String,
-  content_url: String
+  contentUrl: String
 })
 
 export default mongoose.model("Message", MessageSchema)

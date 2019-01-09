@@ -4,3 +4,17 @@ export function initGroups(groups) {
     groups
   }
 }
+
+export function handleAddNewGroup(group) {
+  return {
+    type: "GROUPS_ADD_NEW_GROUP",
+    group
+  }
+}
+
+export function handleUpdateGroup(group) {
+  return {
+    type: "GROUPS_UPDATE_GROUP",
+    group
+  }
+}

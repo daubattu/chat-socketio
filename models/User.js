@@ -11,6 +11,9 @@ const UserSchema = new Schema({
   avatar: { type: String, default: "/images/user-avatar.png" },
   status: { type: Number, default: 1 },
   online: { type: Boolean, default: false },
+  friends: [
+    { type: Schema.Types.ObjectId, ref: "User", default: [] }
+  ],
   lastConnectedTime: { type: Number, default: Date.now() }
 })
 

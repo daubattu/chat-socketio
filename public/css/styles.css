@@ -295,3 +295,56 @@ body {
 .item-member-of-modal-members-group:hover {
   background: #eee;
 }
+
+.extend-type-message label {
+  margin-bottom: 0;
+}
+.extend-type-message input {
+  display: none;
+}
+
+.preview-files-attachment {
+  padding: .375rem .75rem;
+}
+
+.item-preview-image {
+  position: relative;
+  border-radius: 5px;
+  display: inline-block;
+  margin-right: 5px;
+}
+
+.item-preview-image::before {
+  content: "";
+  display: block;
+  position: absolute;
+  background: #fff;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.item-preview-image:hover::before {
+  opacity: .5;
+}
+
+.item-preview-image:hover i {
+  /* display: block; */
+  opacity: 1;
+  z-index: 1;
+}
+
+.item-preview-image img {
+  border-radius: 5px;
+}
+
+.item-preview-image i {
+  z-index: 0;
+  opacity: 0;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+}

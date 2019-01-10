@@ -8,7 +8,7 @@ import { setCurrentGroup, addMembersGroup, deleteMemberOfGroup } from "../../act
 import { handleUpdateGroup } from "../../actions/groups"
 import { Modal, notification } from "antd"
 
-let socket = socketIOClient("http://chatapp.stovietnam.com")
+let socket = socketIOClient("http://localhost:3000")
 
 socket.on("newConnection", data => {
   console.log(data)
@@ -94,9 +94,9 @@ class ChatContainer extends Component {
     confirmDeleteMember: deleteMember => {
       let _this = this
       const { group } = this.props
-  
+
       confirm({
-        title: `Bạn có thực sự muốn xóa người dùng ${ deleteMember.name || deleteMember.username } khỏi nhóm chat ${ group.name }?`,
+        title: `Bạn có thực sự muốn xóa người dùng ${deleteMember.name || deleteMember.username} khỏi nhóm chat ${group.name}?`,
         width: "30%",
         onOk() {
           return new Promise((resolve, reject) => {
@@ -105,31 +105,31 @@ class ChatContainer extends Component {
                 deleteMemberId: deleteMember._id
               }
             }).then(() => {
-                _this.pushNotifycation("success", `Xóa người dùng ${ deleteMember.name || deleteMember.username } khỏi nhóm chat ${ group.name } thành công`)
-                const members = group.members
+              _this.pushNotifycation("success", `Xóa người dùng ${deleteMember.name || deleteMember.username} khỏi nhóm chat ${group.name} thành công`)
+              const members = group.members
 
-                for(let i = 0; i < members.length; i++) {
-                  if(members[i]._id === deleteMember._id) {
-                    _this.props.deleteMemberOfGroup(members[i]._id)
-                    break
-                  }
+              for (let i = 0; i < members.length; i++) {
+                if (members[i]._id === deleteMember._id) {
+                  _this.props.deleteMemberOfGroup(members[i]._id)
+                  break
                 }
-                _this.actions.handleChangeStatusModal("listMembers")
-                _this.props.handleUpdateGroup({ ...group, members: [...group.members].filter(member => member._id !== deleteMember._id) })
-                resolve()
-              }, error => {
-                let message = `Xóa người dùng ${ deleteMember.name || deleteMember.username } khỏi nhóm chat ${ group.name } không thành công`
-  
-                if(error.response.data.message) {
-                  message = error.response.data.message
-                }
-  
-                _this.pushNotifycation("error", message)
-                reject()
-              })
+              }
+              _this.actions.handleChangeStatusModal("listMembers")
+              _this.props.handleUpdateGroup({ ...group, members: [...group.members].filter(member => member._id !== deleteMember._id) })
+              resolve()
+            }, error => {
+              let message = `Xóa người dùng ${deleteMember.name || deleteMember.username} khỏi nhóm chat ${group.name} không thành công`
+
+              if (error.response.data.message) {
+                message = error.response.data.message
+              }
+
+              _this.pushNotifycation("error", message)
+              reject()
+            })
           })
         },
-        onCancel() {},
+        onCancel() { },
       })
     },
     handleChangeNewMemberIds: newMemberIds => this.setState({ newMemberIds }),
@@ -138,7 +138,7 @@ class ChatContainer extends Component {
 
       openModal[modalName] = !openModal[modalName]
 
-      if(modalName === "lisMembers") {
+      if (modalName === "lisMembers") {
         newMemberIds = ""
       }
       this.setState({ openModal, newMemberIds })
@@ -178,28 +178,38 @@ class ChatContainer extends Component {
       document.getElementById("message-content").blur()
 
       const messageToSend = { ...this.state.message }
-      let message = {
-        type: "text",
-        content: null,
-        file: null
-      }
 
-      this.setState({ message })
+      if(messageToSend.type === "image" && messageToSend.files) {
+        let files = []
+        
+        for(let file of messageToSend.files) {
+          files.push(file.src)
+        }
+
+        messageToSend.files = files
+      }
 
       axios.post("/api/v1/messages", {
         socketID: socket.id,
         groupId: this.props.group._id,
         ...messageToSend
-      }).then(() => { },
-        error => {
-          let { messages } = this.state
-          let user = this.props.currentUser
+      }).then(() => {
+        let message = {
+          type: "text",
+          content: null,
+          file: null
+        }
 
-          messages.push({ type: "text", content: "Gửi thất bại", error: true, createdTime: Date.now(), user })
+        this.setState({ message })
+      }, error => {
+        let { messages } = this.state
+        let user = this.props.currentUser
 
-          this.setState({ messages })
-          console.log(error)
-        })
+        messages.push({ type: "text", content: "Gửi thất bại", error: true, createdTime: Date.now(), user })
+
+        this.setState({ messages })
+        console.log(error)
+      })
     },
     handleOnTyping: () => {
       socket.emit("typing")
@@ -211,6 +221,56 @@ class ChatContainer extends Component {
       let { message } = this.state
       message[field] = value
       this.setState({ message })
+    },
+    handleDeleteFilesWithIndex: indexOfFile => {
+      let message = this.state.message
+      let files = [...message.files]
+
+      files.splice(indexOfFile, 1)
+
+      message.files = files
+
+      if(message.files.length === 0) {
+        message.files = null
+        message.type = "text"
+      }
+
+      this.setState({ message })
+    },
+    handleChangeMessageWithFile: (typeFile, files) => {
+      let { message } = this.state
+
+      message.type = typeFile
+      message.files = []
+
+      if (typeFile === "image") {
+        for (let i = 0; i < files.length; i++) {
+          const reader = new FileReader()
+
+          if (!message.files[i]) {
+            message.files[i] = {}
+          }
+
+          message.files[i].isLoading = true
+
+          this.scrollToBottomOfWrapperMessages()
+
+          this.setState({ message })
+
+          reader.onload = event => {
+            message.files[i].src = event.target.result
+            message.files[i].isLoading = false
+            this.setState({ message })
+            this.scrollToBottomOfWrapperMessages()
+          }
+
+          setTimeout(() => {
+            reader.readAsDataURL(files[i])
+          }, 3000)
+
+          document.getElementById("message-content").focus()
+        }
+      }
     }
   }
 

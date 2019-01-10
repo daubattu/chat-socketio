@@ -19,28 +19,76 @@ function Chat(props) {
         <div id="wrapper-messages" style={{ flexGrow: "1", overflow: "auto", height: "100vh" }}>
           <Messages isMe={isMe} messages={messages} />
         </div>
-        <div className="input-message" style={{ marginBottom: "40px", position: "relative" }}>
-          {isTyping && <img className="typing" src="/images/typing.gif" />}
-          <textarea
-            onKeyPress={event => {
-              if (event.key === 'Enter') {
-                actions.handleSendMessage()
-              }
-            }}
-            value={message.content || ""} id="message-content" onFocus={actions.handleOnTyping} onBlur={actions.handleUnTyping} onChange={event => actions.handleChangeMessage("content", event.target.value)} className="form-control" placeholder="Nhập tin nhắn" />
-          <div style={{ position: "absolute", top: "50%", transform: "translateY(-50%)", right: "15px", display: "flex", alignItems: "center" }}>
-            <div className={openExtendTypeMessage ? "extend-type-message is-extend" : "extend-type-message"}>
-              {
-                openExtendTypeMessage
-                &&
-                <Fragment>
-                  <i className="fa fa-picture-o" style={{ marginRight: "5px", cursor: "pointer" }} aria-hidden="true"></i>
-                  <i className="fa fa-video-camera" style={{ cursor: "pointer" }} aria-hidden="true"></i>
-                </Fragment>
-              }
-              <i onClick={actions.handleChangeStateOpenExtendTypeMessage} style={{ cursor: "pointer" }} className="fa fa-chevron-right" aria-hidden="true"></i>
+
+        <div>
+          <div className="input-message" style={{ marginBottom: "40px", position: "relative" }}>
+            <div style={{ position: "relative" }}>
+              {isTyping && <img className="typing" src="/images/typing.gif" />}
+              <textarea
+                // className={ message.type }
+                onKeyPress={event => {
+                  if (event.key === 'Enter') {
+                    actions.handleSendMessage()
+                  }
+                }}
+                value={message.content || ""}
+                id="message-content"
+                onFocus={actions.handleOnTyping}
+                onBlur={actions.handleUnTyping}
+                onChange={event => actions.handleChangeMessage("content", event.target.value)}
+                className="form-control"
+                placeholder="Nhập tin nhắn"
+              />
+              <div style={{ position: "absolute", top: "50%", transform: "translateY(-50%)", right: "15px", display: "flex", alignItems: "center" }}>
+                <div className={openExtendTypeMessage ? "extend-type-message is-extend" : "extend-type-message"}>
+                  {
+                    openExtendTypeMessage
+                    &&
+                    <Fragment>
+                      <label htmlFor="image">
+                        <i className="fa fa-picture-o" style={{ cursor: "pointer" }} aria-hidden="true"></i>
+                      </label>
+                      <input accept="image/*" multiple onChange={event => actions.handleChangeMessageWithFile("image", event.target.files)} id="image" type="file" />
+                      <label htmlFor="video">
+                        <i className="fa fa-video-camera" style={{ margin: "0 5px", cursor: "pointer" }} aria-hidden="true"></i>
+                      </label>
+                      <input accept="video/*" onChange={event => actions.handleChangeMessageWithFile("video", event.target.files)} id="video" type="file" />
+                      <label htmlFor="file">
+                        <i className="fa fa-paperclip" style={{ cursor: "pointer", fontWeight: "bold" }} aria-hidden="true"></i>
+                      </label>
+                      <input onChange={event => actions.handleChangeMessageWithFile("file", event.target.files)} id="file" type="file" />
+                    </Fragment>
+                  }
+                  <i onClick={actions.handleChangeStateOpenExtendTypeMessage} style={{ cursor: "pointer" }} className="fa fa-chevron-right" aria-hidden="true"></i>
+                </div>
+                <i style={{ cursor: "pointer", marginLeft: "10px" }} onClick={actions.handleSendMessage} className="fa fa-paper-plane-o" aria-hidden="true"></i>
+              </div>
             </div>
-            <i style={{ cursor: "pointer", marginLeft: "10px" }} onClick={actions.handleSendMessage} className="fa fa-paper-plane-o" aria-hidden="true"></i>
+            {
+              message.type !== "text"
+              &&
+              <div className={"preview-files-attachment" + " " + message.type}>
+                {
+                  message.type === "image"
+                  &&
+                  <Fragment>
+                    {
+                      message.files.map((image, index) => {
+                        if (image.isLoading) {
+                          return <img key={index} src="/images/loading.gif" style={{ height: "20px", marginRight: "5px" }} />
+                        }
+                        return (
+                          <div key={index} className="item-preview-image" onClick={() => actions.handleDeleteFilesWithIndex(index)}>
+                            <i className="fa fa-trash-o" aria-hidden="true"></i>
+                            <img src={image.src} style={{ height: "50px" }} />
+                          </div>
+                        )
+                      })
+                    }
+                  </Fragment>
+                }
+              </div>
+            }
           </div>
         </div>
       </div>

@@ -64,7 +64,7 @@ async function PostMessage(request, response) {
       if(request.body[prop] === "text") {
         if((!request.body.content || request.body.content === "")) {
           return response.status(400).json({ status: 400, message: "Tin nhắn không chứa nội dung" })
-        } else if(request.body.files || request.body.files[0]) {
+        } else if(request.body.files) {
           return response.status(400).json({ status: 400, message: "Type text không được chứa trường files" })
         }
       } else {

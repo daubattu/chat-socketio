@@ -20,6 +20,25 @@ function Chat(props) {
     }
   }
 
+  const previewFilesAttachment = (file, index) => {
+    if (message.type === "image") {
+      return (
+        <div key={index} className="item-preview-image" onClick={() => actions.handleDeleteFilesWithIndex(index)}>
+          <i className="fa fa-trash-o" aria-hidden="true"></i>
+          <img src={file.src} style={{ height: "50px" }} />
+        </div>
+      )
+    } else if (message.type === "video") {
+      return (
+        <div key={index} className="item-preview-video">
+          <video key={index} controls src={file.src} style={{ height: "150px" }} />
+        </div>
+      )
+    } else {
+      return null
+    }
+  }
+
   return (
     <Fragment>
       {
@@ -63,15 +82,15 @@ function Chat(props) {
                     &&
                     <Fragment>
                       <label htmlFor="image">
-                        <i className={ message.type === "image" ? "fa fa-picture-o selected" : "fa fa-picture-o"} style={{ cursor: "pointer" }} aria-hidden="true"></i>
+                        <i className={message.type === "image" ? "fa fa-picture-o selected" : "fa fa-picture-o"} style={{ cursor: "pointer" }} aria-hidden="true"></i>
                       </label>
                       <input accept="image/*" multiple onChange={event => actions.handleChangeMessageWithFile("image", event.target.files)} id="image" type="file" />
                       <label htmlFor="video">
-                        <i className={ message.type === "video" ? "fa fa-video-camera selected" : "fa fa-video-camera"} style={{ margin: "0 5px", cursor: "pointer" }} aria-hidden="true"></i>
+                        <i className={message.type === "video" ? "fa fa-video-camera selected" : "fa fa-video-camera"} style={{ margin: "0 5px", cursor: "pointer" }} aria-hidden="true"></i>
                       </label>
                       <input accept="video/*" onChange={event => actions.handleChangeMessageWithFile("video", event.target.files)} id="video" type="file" />
                       <label htmlFor="file">
-                        <i className={ message.type === "file" ? "fa fa-paperclip selected" : "fa fa-paperclip"} style={{ cursor: "pointer", fontWeight: "bold" }} aria-hidden="true"></i>
+                        <i className={message.type === "file" ? "fa fa-paperclip selected" : "fa fa-paperclip"} style={{ cursor: "pointer", fontWeight: "bold" }} aria-hidden="true"></i>
                       </label>
                       <input onChange={event => actions.handleChangeMessageWithFile("file", event.target.files)} id="file" type="file" />
                     </Fragment>
@@ -91,25 +110,16 @@ function Chat(props) {
               message.type !== "text"
               &&
               <div className={"preview-files-attachment" + " " + message.type}>
-                {
-                  message.type === "image"
-                  &&
-                  <Fragment>
-                    {
-                      message.files.map((image, index) => {
-                        if (image.isLoading) {
-                          return <img key={index} src="/images/loading.gif" style={{ height: "20px", marginRight: "5px" }} />
-                        }
-                        return (
-                          <div key={index} className="item-preview-image" onClick={() => actions.handleDeleteFilesWithIndex(index)}>
-                            <i className="fa fa-trash-o" aria-hidden="true"></i>
-                            <img src={image.src} style={{ height: "50px" }} />
-                          </div>
-                        )
-                      })
-                    }
-                  </Fragment>
-                }
+                <Fragment>
+                  {
+                    message.files.map((file, index) => {
+                      if (file.isLoading) {
+                        return <img key={index} src="/images/loading.gif" style={{ height: "20px", marginRight: "5px" }} />
+                      }
+                      return previewFilesAttachment(file, index)
+                    })
+                  }
+                </Fragment>
               </div>
             }
           </div>

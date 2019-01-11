@@ -66,19 +66,12 @@ io.on("connection", socket => {
     socket.to(data.groupId).emit('unTyping')
     socket.leave(data.groupId)
   })
-  socket.on("typing", () => {
-    const keys = Object.keys(socket.rooms)
-
-    for (let i = 0; i < keys.length; i++) {
-      socket.to(socket.rooms[keys[i]]).emit('typing')
-    }
+  socket.on("typing", data => {
+    socket.to(data.groupId).emit('typing')
   })
-  socket.on("unTyping", () => {
-    const keys = Object.keys(socket.rooms)
+  socket.on("unTyping", data => {
+    socket.to(data.groupId).emit('unTyping')
 
-    for (let i = 0; i < keys.length; i++) {
-      socket.to(socket.rooms[keys[i]]).emit('unTyping')
-    }
   })
   // socket.on("sendNewMessage", data => {
   //   const keys = Object.keys(socket.rooms)

@@ -5,10 +5,10 @@ import Chat from "../../components/Chat"
 import ModalMemberOfGroup from "./Modals/MemberOfGroup"
 import axios from "axios";
 import { setCurrentGroup, addMembersGroup, deleteMemberOfGroup } from "../../actions/group"
-import { handleUpdateGroup } from "../../actions/groups"
+import { handleUpdateGroup, handleUpdateGroupById } from "../../actions/groups"
 import { Modal, notification } from "antd"
 
-let socket = socketIOClient("http://chatapp.stovietnam.com")
+let socket = socketIOClient("localhost:3000")
 
 socket.on("newConnection", data => {
   console.log(data)
@@ -60,6 +60,7 @@ class ChatContainer extends Component {
   }
 
   componentWillMount() {
+    socket.emit("joinRoom", { groupId: this.props.currentUser._id })
     socket.on("typing", () => {
       document.getElementById("message-content").placeholder = ""
       this.setState({ isTyping: true })
@@ -68,10 +69,15 @@ class ChatContainer extends Component {
       this.setState({ isTyping: false })
     })
     socket.on("receiveNewMessage", data => {
-      let { messages } = this.state
-      messages.push(data)
-      this.setState({ messages })
-      this.scrollToBottomOfWrapperMessages()
+      if (this.props.group._id === data.group._id) {
+        let { messages } = this.state
+        messages.push(data)
+        this.setState({ messages })
+        this.scrollToBottomOfWrapperMessages()
+      } else {
+        this.props.handleUpdateGroup(data.group)
+        console.log("Có tin nhắn ở group khác", data.group.name)
+      }
     })
   }
 
@@ -179,10 +185,10 @@ class ChatContainer extends Component {
 
       const messageToSend = { ...this.state.message }
 
-      if(messageToSend.type === "image" && messageToSend.files) {
+      if (messageToSend.type === "image" && messageToSend.files) {
         let files = []
-        
-        for(let file of messageToSend.files) {
+
+        for (let file of messageToSend.files) {
           files.push(file.src)
         }
 
@@ -214,10 +220,10 @@ class ChatContainer extends Component {
       })
     },
     handleOnTyping: () => {
-      socket.emit("typing")
+      socket.emit("typing", { groupId: this.props.group._id })
     },
     handleUnTyping: () => {
-      socket.emit("unTyping")
+      socket.emit("unTyping", { groupId: this.props.group._id })
     },
     handleChangeMessage: (field, value) => {
       let { message } = this.state
@@ -232,7 +238,7 @@ class ChatContainer extends Component {
 
       message.files = files
 
-      if(message.files.length === 0) {
+      if (message.files.length === 0) {
         message.files = null
         message.type = "text"
       }
@@ -242,39 +248,34 @@ class ChatContainer extends Component {
     handleChangeMessageWithFile: (typeFile, files) => {
       let { message } = this.state
 
-      if(files.length !== 0) {
+      if (files.length !== 0) {
         message.type = typeFile
         message.files = []
       }
 
+      for (let i = 0; i < files.length; i++) {
+        const reader = new FileReader()
 
-      if (typeFile === "image") {
-        for (let i = 0; i < files.length; i++) {
-          const reader = new FileReader()
-
-          if (!message.files[i]) {
-            message.files[i] = {}
-          }
-
-          message.files[i].isLoading = true
-
-          this.setState({ message })
-
-          this.scrollToBottomOfWrapperMessages()
-
-          reader.onload = event => {
-            message.files[i].src = event.target.result
-            message.files[i].isLoading = false
-            this.setState({ message })
-            this.scrollToBottomOfWrapperMessages()
-          }
-
-          setTimeout(() => {
-            reader.readAsDataURL(files[i])
-          }, 3000)
-
-          document.getElementById("message-content").focus()
+        if (!message.files[i]) {
+          message.files[i] = {}
         }
+
+        message.files[i].isLoading = true
+
+        this.setState({ message })
+
+        this.scrollToBottomOfWrapperMessages()
+
+        reader.onload = event => {
+          message.files[i].src = event.target.result
+          message.files[i].isLoading = false
+          this.setState({ message })
+          this.scrollToBottomOfWrapperMessages()
+        }
+
+        reader.readAsDataURL(files[i])
+
+        document.getElementById("message-content").focus()
       }
     }
   }
@@ -311,4 +312,4 @@ function mapStateToProps(state) {
   }
 }
 
-export default connect(mapStateToProps, { setCurrentGroup, deleteMemberOfGroup, addMembersGroup, handleUpdateGroup })(ChatContainer)
+export default connect(mapStateToProps, { setCurrentGroup, handleUpdateGroupById, deleteMemberOfGroup, addMembersGroup, handleUpdateGroup })(ChatContainer)

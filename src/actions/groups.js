@@ -18,3 +18,10 @@ export function handleUpdateGroup(group) {
     group
   }
 }
+
+export function handleUpdateGroupById(groupId) {
+  return {
+    type: "GROUPS_UPDATE_GROUP_BY_ID",
+    groupId
+  }
+}

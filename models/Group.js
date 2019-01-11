@@ -12,4 +12,9 @@ const GroupSchema = new Schema({
   updatedTime: { type: Number, default: Date.now() }
 })
 
+GroupSchema.pre("save", function (next) {
+  this.updatedTime = Date.now()
+  return next()
+})
+
 export default mongoose.model("Group", GroupSchema)

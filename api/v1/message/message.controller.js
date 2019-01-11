@@ -46,7 +46,7 @@ async function GetMessage(request, response) {
     }
   }
 
-  const messages = await Message.find(query).populate("user")
+  const messages = await Message.find(query).populate("user").limit(10)
   
   return response.status(200).json({ status: 200, messages })
 }

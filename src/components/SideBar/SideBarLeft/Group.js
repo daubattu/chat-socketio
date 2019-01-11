@@ -43,7 +43,7 @@ function Group(props) {
             <div className="group-last-message">
               <small style={{ maxWidth: "80%", overflow: "hidden" }}>
                 {isMe(group.lastMessage.user._id) && "You: "}
-                {group.lastMessage.type === "text" && group.lastMessage.content.slice(0, 30)}
+                {group.lastMessage.content && group.lastMessage.content.slice(0, 30)}
               </small>
               {
                 !isMe(group.lastMessage.user._id)

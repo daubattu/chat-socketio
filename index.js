@@ -63,6 +63,7 @@ io.on("connection", socket => {
     socket.to(data.groupId).emit("newConnection", socket.id + " have just connected to" + data.groupId)
   })
   socket.on("leaveRoom", data => {
+    socket.to(data.groupId).emit('unTyping')
     socket.leave(data.groupId)
   })
   socket.on("typing", () => {

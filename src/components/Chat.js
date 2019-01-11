@@ -3,6 +3,23 @@ import Messages from "./Messages";
 
 function Chat(props) {
   const { group, actions, messages, message, isTyping, isMe, openExtendTypeMessage } = props
+
+  const isValid = message => {
+    if (message.type === "text") {
+      if (message.content) {
+        return "fa fa-paper-plane-o valid"
+      } else {
+        return "fa fa-paper-plane-o"
+      }
+    } else {
+      if (message.files && message.files.length !== 0) {
+        return "fa fa-paper-plane-o valid"
+      } else {
+        return "fa fa-paper-plane-o"
+      }
+    }
+  }
+
   return (
     <Fragment>
       {
@@ -46,22 +63,28 @@ function Chat(props) {
                     &&
                     <Fragment>
                       <label htmlFor="image">
-                        <i className="fa fa-picture-o" style={{ cursor: "pointer" }} aria-hidden="true"></i>
+                        <i className={ message.type === "image" ? "fa fa-picture-o selected" : "fa fa-picture-o"} style={{ cursor: "pointer" }} aria-hidden="true"></i>
                       </label>
                       <input accept="image/*" multiple onChange={event => actions.handleChangeMessageWithFile("image", event.target.files)} id="image" type="file" />
                       <label htmlFor="video">
-                        <i className="fa fa-video-camera" style={{ margin: "0 5px", cursor: "pointer" }} aria-hidden="true"></i>
+                        <i className={ message.type === "video" ? "fa fa-video-camera selected" : "fa fa-video-camera"} style={{ margin: "0 5px", cursor: "pointer" }} aria-hidden="true"></i>
                       </label>
                       <input accept="video/*" onChange={event => actions.handleChangeMessageWithFile("video", event.target.files)} id="video" type="file" />
                       <label htmlFor="file">
-                        <i className="fa fa-paperclip" style={{ cursor: "pointer", fontWeight: "bold" }} aria-hidden="true"></i>
+                        <i className={ message.type === "file" ? "fa fa-paperclip selected" : "fa fa-paperclip"} style={{ cursor: "pointer", fontWeight: "bold" }} aria-hidden="true"></i>
                       </label>
                       <input onChange={event => actions.handleChangeMessageWithFile("file", event.target.files)} id="file" type="file" />
                     </Fragment>
                   }
                   <i onClick={actions.handleChangeStateOpenExtendTypeMessage} style={{ cursor: "pointer" }} className="fa fa-chevron-right" aria-hidden="true"></i>
                 </div>
-                <i style={{ cursor: "pointer", marginLeft: "10px" }} onClick={actions.handleSendMessage} className="fa fa-paper-plane-o" aria-hidden="true"></i>
+                <i
+                  onClick={() => {
+                    if (message.content) {
+                      actions.handleChangeStateOpenExtendTypeMessage
+                    }
+                  }}
+                  style={{ cursor: "pointer", marginLeft: "10px" }} onClick={actions.handleSendMessage} className={isValid(message)} aria-hidden="true"></i>
               </div>
             </div>
             {

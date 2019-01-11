@@ -11,7 +11,7 @@ const MessageSchema = new Schema({
   ],
   type: { type: String, default: "text" },
   content: String,
-  contentUrl: String
+  files: [String]
 })
 
 export default mongoose.model("Message", MessageSchema)

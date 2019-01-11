@@ -157,7 +157,7 @@ body {
   background: #eee;
   padding: 5px 15px;
   border-radius: 3px;
-  display: block;
+  display: inline-block;
 }
 
 .item-message .item-message-content.error {
@@ -347,4 +347,28 @@ body {
   left: 50%;
   transform: translate(-50%, -50%);
   cursor: pointer;
+}
+
+.message-attachments {
+  clear: both;
+}
+.message-attachments .image:last-child {
+  margin-right: 0;
+}
+.message-attachments-item.image {
+  height: 50px;
+  border-radius: 5px;
+  margin: 5px 2px;
+}
+
+.input-message .fa-paper-plane-o.valid {
+  color: #3578e5;
+}
+
+.input-message .fa-paper-plane-o {
+  color: #ccc;
+}
+
+.input-message .fa-picture-o.selected, .input-message.fa-video-camera.selected, .input-message.fa-paperclip.selected {
+  color: red;
 }

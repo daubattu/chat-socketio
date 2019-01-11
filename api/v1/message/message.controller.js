@@ -1,9 +1,36 @@
 import Message from "../../../models/Message"
 import Group from "../../../models/Group";
+import path from "path"
+import fs from "fs"
 
 String.prototype.replaceAll = function(search, replacement) {
   var target = this;
   return target.split(search).join(replacement);
+}
+
+const staticFolder = path.resolve(__dirname, "../../../public/uploads")
+
+function uploadImages(arrayImages) {
+  let images = []
+
+  for (let i = 0; i < arrayImages.length; i++) {
+    const image = arrayImages[i]
+    if (image.includes("base64")) {
+      const data = image.replace(/^data:image\/(png|gif|jpeg);base64,/, "")
+      const mime = image.match(/^data:image\/(png|gif|jpeg);base64,/)[1]
+      const timeString = new Date().getTime().toString() + i.toString()
+      const name = `${timeString}.${mime}`
+
+      images.push("/uploads/" + name)
+
+      try {
+        fs.writeFileSync(`${staticFolder}/${name}`, data, 'base64', error => {
+          if (error) console.log(error)
+        })
+      } catch (error) { console.log(error) }
+    }
+  }
+  return images
 }
 
 async function GetMessage(request, response) {
@@ -19,7 +46,6 @@ async function GetMessage(request, response) {
     }
   }
 
-
   const messages = await Message.find(query).populate("user")
   
   return response.status(200).json({ status: 200, messages })
@@ -30,8 +56,26 @@ async function PostMessage(request, response) {
   const props = ["groupId", "type", "content"]
 
   for(let prop of props) {
-    if(!request.body[prop]) {
+    if(!request.body[prop] && prop !== "content") {
       return response.status(400).json({ status: 400, messages: "Field " + prop + " is required"})
+    }
+
+    if(prop === "type") {
+      if(request.body[prop] === "text") {
+        if((!request.body.content || request.body.content === "")) {
+          return response.status(400).json({ status: 400, message: "Tin nhắn không chứa nội dung" })
+        } else if(request.body.files || request.body.files[0]) {
+          return response.status(400).json({ status: 400, message: "Type text không được chứa trường files" })
+        }
+      } else {
+        if(!request.body.files) {
+          return response.status(400).json({ status: 400, message: "Không tìm thấy trường files" })
+        } else {
+          if(typeof request.body.files !== "array") {
+            return response.status(400).json({ status: 400, message: "Trường files phải là 1 mảng" })
+          }
+        }
+      }
     }
   }
 
@@ -48,6 +92,12 @@ async function PostMessage(request, response) {
     type: request.body.type,
     content: request.body.content
   })
+
+  if(request.body.type === "image") {
+    const files = uploadImages(request.body.files)
+    console.log(files)
+    newMessage.files = files
+  }
 
   await newMessage.save()
   

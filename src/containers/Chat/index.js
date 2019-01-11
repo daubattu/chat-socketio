@@ -208,6 +208,8 @@ class ChatContainer extends Component {
         messages.push({ type: "text", content: "Gửi thất bại", error: true, createdTime: Date.now(), user })
 
         this.setState({ messages })
+
+        this.scrollToBottomOfWrapperMessages()
         console.log(error)
       })
     },
@@ -240,8 +242,11 @@ class ChatContainer extends Component {
     handleChangeMessageWithFile: (typeFile, files) => {
       let { message } = this.state
 
-      message.type = typeFile
-      message.files = []
+      if(files.length !== 0) {
+        message.type = typeFile
+        message.files = []
+      }
+
 
       if (typeFile === "image") {
         for (let i = 0; i < files.length; i++) {
@@ -253,9 +258,9 @@ class ChatContainer extends Component {
 
           message.files[i].isLoading = true
 
-          this.scrollToBottomOfWrapperMessages()
-
           this.setState({ message })
+
+          this.scrollToBottomOfWrapperMessages()
 
           reader.onload = event => {
             message.files[i].src = event.target.result

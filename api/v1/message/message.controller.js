@@ -71,7 +71,7 @@ async function PostMessage(request, response) {
         if(!request.body.files) {
           return response.status(400).json({ status: 400, message: "Không tìm thấy trường files" })
         } else {
-          if(typeof request.body.files !== "array") {
+          if(!Array.isArray(request.body.files)) {
             return response.status(400).json({ status: 400, message: "Trường files phải là 1 mảng" })
           }
         }

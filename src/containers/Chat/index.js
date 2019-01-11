@@ -8,7 +8,7 @@ import { setCurrentGroup, addMembersGroup, deleteMemberOfGroup } from "../../act
 import { handleUpdateGroup } from "../../actions/groups"
 import { Modal, notification } from "antd"
 
-let socket = socketIOClient("http://localhost:3000")
+let socket = socketIOClient("http://chatapp.stovietnam.com")
 
 socket.on("newConnection", data => {
   console.log(data)

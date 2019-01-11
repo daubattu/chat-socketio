@@ -69,7 +69,9 @@ class ChatContainer extends Component {
       this.setState({ isTyping: false })
     })
     socket.on("receiveNewMessage", data => {
+      console.log("receiveNewMessage")
       if (this.props.group._id === data.group._id) {
+        console.log("Có tin nhắn ở group này")
         let { messages } = this.state
         messages.push(data)
         this.setState({ messages })

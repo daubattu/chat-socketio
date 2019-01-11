@@ -67,11 +67,12 @@ io.on("connection", socket => {
     socket.leave(data.groupId)
   })
   socket.on("typing", data => {
-    socket.to(data.groupId).emit('typing')
+    if(data)
+      socket.to(data.groupId).emit('typing')
   })
   socket.on("unTyping", data => {
-    socket.to(data.groupId).emit('unTyping')
-
+    if(data)
+      socket.to(data.groupId).emit('unTyping')
   })
   // socket.on("sendNewMessage", data => {
   //   const keys = Object.keys(socket.rooms)

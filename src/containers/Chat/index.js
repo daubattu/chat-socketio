@@ -22,7 +22,7 @@ class ChatContainer extends Component {
     message: {
       type: "text",
       content: null,
-      file: null
+      files: []
     },
     openModal: {
       listMembers: false
@@ -69,15 +69,24 @@ class ChatContainer extends Component {
       this.setState({ isTyping: false })
     })
     socket.on("receiveNewMessage", data => {
-      console.log("receiveNewMessage")
+      console.log("receiveNewMessage", data)
+      const groupUpdate = {
+        ...data.group,
+        lastMessage: {
+          ...data,
+          user: data.user
+        }
+      }
+
       if (this.props.group._id === data.group._id) {
-        console.log("Có tin nhắn ở group này")
+        console.log("Có tin nhắn ở group này", data.group)
         let { messages } = this.state
         messages.push(data)
         this.setState({ messages })
         this.scrollToBottomOfWrapperMessages()
+        this.props.handleUpdateGroup(groupUpdate)
       } else {
-        this.props.handleUpdateGroup(data.group)
+        this.props.handleUpdateGroup(groupUpdate)
         console.log("Có tin nhắn ở group khác", data.group.name)
       }
     })
@@ -185,41 +194,43 @@ class ChatContainer extends Component {
     handleSendMessage: async () => {
       document.getElementById("message-content").blur()
 
-      const messageToSend = { ...this.state.message }
+      let message = { ...this.state.message }
 
-      if (messageToSend.type === "image" && messageToSend.files) {
-        let files = []
+      let formData = new FormData()
+      let config = { headers: { "Content-Type": "multipart/form-data" } }
 
-        for (let file of messageToSend.files) {
-          files.push(file.src)
+      if (message.type !== "text" && message.files) {
+        for (let attachment of message.files) {
+          formData.append("attachments", attachment.file)
         }
-
-        messageToSend.files = files
       }
 
-      axios.post("/api/v1/messages", {
-        socketID: socket.id,
-        groupId: this.props.group._id,
-        ...messageToSend
-      }).then(() => {
-        let message = {
-          type: "text",
-          content: null,
-          file: null
-        }
+      if (message.content) {
+        formData.append("content", message.content)
+      }
 
-        this.setState({ message })
-      }, error => {
-        let { messages } = this.state
-        let user = this.props.currentUser
+      formData.append("groupId", this.props.group._id)
+      formData.append("type", message.type)
 
-        messages.push({ type: "text", content: "Gửi thất bại", error: true, createdTime: Date.now(), user })
+      axios.post("/api/v1/messages", formData, config)
+        .then(() => {
+          message = {
+            type: "text",
+            content: null,
+            files: null
+          }
+          this.setState({ message })
+        }, error => {
+          let { messages } = this.state
+          let user = this.props.currentUser
 
-        this.setState({ messages })
+          messages.push({ type: "text", content: "Gửi thất bại", error: true, createdTime: Date.now(), user })
 
-        this.scrollToBottomOfWrapperMessages()
-        console.log(error)
-      })
+          this.setState({ messages })
+
+          this.scrollToBottomOfWrapperMessages()
+          console.log(error)
+        })
     },
     handleOnTyping: () => {
       socket.emit("typing", { groupId: this.props.group._id })
@@ -241,7 +252,7 @@ class ChatContainer extends Component {
       message.files = files
 
       if (message.files.length === 0) {
-        message.files = null
+        message.files = []
         message.type = "text"
       }
 
@@ -250,34 +261,47 @@ class ChatContainer extends Component {
     handleChangeMessageWithFile: (typeFile, files) => {
       let { message } = this.state
 
-      if (files.length !== 0) {
+      if (typeFile !== "image" && files[0].size > 25 * 1024 * 1024) {
+        this.pushNotifycation("error", "Kích thước file upload không được vượt quá 25 MB")
+      } else {
+        console.log(files.length)
         message.type = typeFile
         message.files = []
-      }
 
-      for (let i = 0; i < files.length; i++) {
-        const reader = new FileReader()
-
-        if (!message.files[i]) {
-          message.files[i] = {}
+        const formatFileSize = size => {
+          var i = Math.floor(Math.log(size) / Math.log(1024))
+          return (size / Math.pow(1024, i)).toFixed(2) * 1 + ' ' + ['B', 'kB', 'MB', 'GB', 'TB'][i]
         }
 
-        message.files[i].isLoading = true
+        for (let i = 0; i < files.length; i++) {
+          const reader = new FileReader()
 
-        this.setState({ message })
+          if (!message.files[i]) {
+            message.files[i] = {}
+          }
 
-        this.scrollToBottomOfWrapperMessages()
+          console.log(this.state.message)
 
-        reader.onload = event => {
-          message.files[i].src = event.target.result
-          message.files[i].isLoading = false
+          message.files[i].file = files[i]
+          message.files[i].name = files[i].name + " - " + formatFileSize(files[i].size)
+
+          message.files[i].isLoading = true
+
           this.setState({ message })
+
           this.scrollToBottomOfWrapperMessages()
+
+          reader.onload = event => {
+            message.files[i].src = event.target.result
+            message.files[i].isLoading = false
+            this.setState({ message })
+            this.scrollToBottomOfWrapperMessages()
+          }
+
+          reader.readAsDataURL(files[i])
+
+          document.getElementById("message-content").focus()
         }
-
-        reader.readAsDataURL(files[i])
-
-        document.getElementById("message-content").focus()
       }
     }
   }
@@ -314,4 +338,4 @@ function mapStateToProps(state) {
   }
 }
 
-export default connect(mapStateToProps, { setCurrentGroup, handleUpdateGroupById, deleteMemberOfGroup, addMembersGroup, handleUpdateGroup })(ChatContainer)
+export default connect(mapStateToProps, { setCurrentGroup, deleteMemberOfGroup, addMembersGroup, handleUpdateGroup })(ChatContainer)

@@ -17,6 +17,30 @@ function displayMessageAttachment(type, files) {
         }
       </Fragment>
     )
+  } else if (type === "video") {
+    return (
+      <Fragment>
+        {
+          files.map((file, index) => {
+            return (
+              <video key={index} src={file} className="message-attachments-item video" style={{ height: "150px", marginTop: "5px" }} controls />
+            )
+          })
+        }
+      </Fragment>
+    )
+  } else if (type === "file") {
+    return (
+      <Fragment>
+        {
+          files.map((file, index) => {
+            return (
+              <a download key={index} href={file}><i className="fa fa-download" aria-hidden="true"></i></a>
+            )
+          })
+        }
+      </Fragment>
+    )
   }
 } 
 

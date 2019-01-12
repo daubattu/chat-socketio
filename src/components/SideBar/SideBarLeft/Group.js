@@ -28,6 +28,34 @@ function customGroupAvatar(currentUser, members) {
   )
 }
 
+function customLastMessage(message) {
+  if(message.type === "text") {
+    return message.content ? message.content.slice(0, 30) : ""
+  } else {
+    if(message.type === "image") {
+      return (
+        <Fragment>
+          Đã gửi { message.files.length } bức ảnh <i className="fa fa-picture-o" />
+        </Fragment>
+      )
+    } else if (message.type === "video") {
+      return (
+        <Fragment>
+          Đã gửi { message.files.length } video <i className="fa fa-video-camera" />
+        </Fragment>
+      )
+    } else if (message.type === "file") {
+      return (
+        <Fragment>
+          Đã gửi { message.files.length } file đính kèm <b><i className="fa fa-paperclip" /></b>
+        </Fragment>
+      )
+    } else {
+      return "Đã gửi 1 thứ gì đó hay ho"
+    }
+  }
+}
+
 function Group(props) {
   const { group, setCurrentGroup, isMe, currentUser } = props
 
@@ -42,8 +70,8 @@ function Group(props) {
           <div>
             <div className="group-last-message">
               <small style={{ maxWidth: "80%", overflow: "hidden" }}>
-                {isMe(group.lastMessage.user._id) && "You: "}
-                {group.lastMessage.content && group.lastMessage.content.slice(0, 30)}
+                { isMe(group.lastMessage.user._id) && "You: " }
+                { customLastMessage(group.lastMessage) }
               </small>
               {
                 !isMe(group.lastMessage.user._id)

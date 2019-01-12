@@ -26,7 +26,7 @@ global.io = io
 app.use(logger("dev"))
 app.use(express.static("public"))
 app.use(bodyParser.json({ limit: "50MB" }))
-app.use(bodyParser.urlencoded({ limit: "50MB", extended: false }))
+app.use(bodyParser.urlencoded({ limit: "50MB", extended: true }))
 
 // define routers
 routers(app)
@@ -74,13 +74,6 @@ io.on("connection", socket => {
     if(data)
       socket.to(data.groupId).emit('unTyping')
   })
-  // socket.on("sendNewMessage", data => {
-  //   const keys = Object.keys(socket.rooms)
-
-  //   for (let i = 0; i < keys.length; i++) {
-  //     socket.to(socket.rooms[keys[i]]).emit("receiveNewMessage", data)
-  //   }
-  // })
   socket.on("disconnect", function () {
     const keys = Object.keys(socket.rooms)
 

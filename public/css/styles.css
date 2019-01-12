@@ -369,6 +369,6 @@ body {
   color: #ccc;
 }
 
-.input-message .fa-picture-o.selected, .input-message.fa-video-camera.selected, .input-message.fa-paperclip.selected {
+.input-message .fa-picture-o.selected, .input-message .fa-video-camera.selected, .input-message .fa-paperclip.selected {
   color: red;
 }

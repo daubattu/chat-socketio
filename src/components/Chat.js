@@ -20,6 +20,11 @@ function Chat(props) {
     }
   }
 
+  const formatFileSize = size => {
+    var i = Math.floor( Math.log(size) / Math.log(1024) )
+    return ( size / Math.pow(1024, i) ).toFixed(2) * 1 + ' ' + ['B', 'kB', 'MB', 'GB', 'TB'][i]
+  }
+
   const previewFilesAttachment = (file, index) => {
     if (message.type === "image") {
       return (
@@ -31,7 +36,19 @@ function Chat(props) {
     } else if (message.type === "video") {
       return (
         <div key={index} className="item-preview-video">
-          <video key={index} controls src={file.src} style={{ height: "150px" }} />
+          <i className="fa fa-file-video-o" aria-hidden="true"></i>
+          {` `}
+          { file.file.name } - {formatFileSize(file.file.size)}
+          <i style={{ marginLeft: "5px", cursor: "pointer" }} onClick={() => actions.handleDeleteFilesWithIndex(index)} className="fa fa-trash-o" aria-hidden="true"></i>
+        </div>
+      )
+    } else if (message.type === "file") {
+      return (
+        <div key={index} className="item-preview-file">
+          <i className="fa fa-file-o" aria-hidden="true"></i> 
+          {` `}
+          { file.file.name } - {formatFileSize(file.file.size)}
+          <i style={{ marginLeft: "5px", cursor: "pointer" }} onClick={() => actions.handleDeleteFilesWithIndex(index)} className="fa fa-trash-o" aria-hidden="true"></i>
         </div>
       )
     } else {
@@ -61,7 +78,6 @@ function Chat(props) {
             <div style={{ position: "relative" }}>
               {isTyping && <img className="typing" src="/images/typing.gif" />}
               <textarea
-                // className={ message.type }
                 onKeyPress={event => {
                   if (event.key === 'Enter') {
                     actions.handleSendMessage()
@@ -81,15 +97,15 @@ function Chat(props) {
                     openExtendTypeMessage
                     &&
                     <Fragment>
-                      <label htmlFor="image">
+                      <label htmlFor="image" onClick={() => actions.handleChangeMessage("type", "image")}>
                         <i className={message.type === "image" ? "fa fa-picture-o selected" : "fa fa-picture-o"} style={{ cursor: "pointer" }} aria-hidden="true"></i>
                       </label>
-                      <input accept="image/*" multiple onChange={event => actions.handleChangeMessageWithFile("image", event.target.files)} id="image" type="file" />
-                      <label htmlFor="video">
+                      <input onBlur={() => console.log("Un Change")} accept="image/*" multiple onChange={event => actions.handleChangeMessageWithFile("image", event.target.files)} id="image" type="file" />
+                      <label htmlFor="video" onClick={() => actions.handleChangeMessage("type", "video")}>
                         <i className={message.type === "video" ? "fa fa-video-camera selected" : "fa fa-video-camera"} style={{ margin: "0 5px", cursor: "pointer" }} aria-hidden="true"></i>
                       </label>
                       <input accept="video/*" onChange={event => actions.handleChangeMessageWithFile("video", event.target.files)} id="video" type="file" />
-                      <label htmlFor="file">
+                      <label htmlFor="file" onClick={() => actions.handleChangeMessage("type", "file")}>
                         <i className={message.type === "file" ? "fa fa-paperclip selected" : "fa fa-paperclip"} style={{ cursor: "pointer", fontWeight: "bold" }} aria-hidden="true"></i>
                       </label>
                       <input onChange={event => actions.handleChangeMessageWithFile("file", event.target.files)} id="file" type="file" />
@@ -107,20 +123,20 @@ function Chat(props) {
               </div>
             </div>
             {
-              message.type !== "text"
-              &&
-              <div className={"preview-files-attachment" + " " + message.type}>
-                <Fragment>
-                  {
-                    message.files.map((file, index) => {
-                      if (file.isLoading) {
-                        return <img key={index} src="/images/loading.gif" style={{ height: "20px", marginRight: "5px" }} />
-                      }
-                      return previewFilesAttachment(file, index)
-                    })
-                  }
-                </Fragment>
-              </div>
+              message.type !== "text" && message.files && message.files.length !== 0
+              ? <div className={"preview-files-attachment" + " " + message.type}>
+                  <Fragment>
+                    {
+                      message.files.map((file, index) => {
+                        if (file.isLoading) {
+                          return <img key={index} src="/images/loading.gif" style={{ height: "20px", marginRight: "5px" }} />
+                        }
+                        return previewFilesAttachment(file, index)
+                      })
+                    }
+                  </Fragment>
+                </div>
+              : null
             }
           </div>
         </div>

@@ -64,10 +64,6 @@ function updatetokenNotification(user, request) {
 async function Update(request, response) {
   const { decoded } = request
 
-  if (!device) {
-    return response.status(401).json({ status: 401, message: "Không tìm thấy loại thiết bị" })
-  }
-
   try {
     const user = await User.findById(decoded._id)
 

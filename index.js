@@ -65,7 +65,7 @@ io.on("connection", socket => {
         if (error) {
           console.log(error)
           errorAuthenticate = {
-            level: "error",
+            level: "warning",
             message: "Đã có lỗi xảy ra trong quá trình giải mã token"
           }
         } else {
@@ -90,13 +90,15 @@ io.on("connection", socket => {
               await tokenNotification.save(async error => {
                 if (error) {
                   errorAuthenticate = {
-                    level: "warning",
+                    level: "error",
                     message: "Oops! Something wrong!"
                   }
                 } else {
                   let user = await User.findById(decoded._id).populate("friends", "username avatar")
 
                   if (user) {
+                    socket.decoded = decoded
+
                     const friends = user.friends || []
                     for (let friend of friends) {
                       const tokenNotificationsOfFriends = await TokenNotification.find({ user: friend._id })
@@ -106,7 +108,6 @@ io.on("connection", socket => {
                         }
                       }
                     }
-                    socket.decoded = decoded
                   } else {
                     errorAuthenticate = {
                       level: "error",
@@ -126,7 +127,7 @@ io.on("connection", socket => {
       })
     } else {
       errorAuthenticate = {
-        level: "error",
+        level: "warning",
         message: "Không tìm thấy tokenJWT trong dữ liệu truyền lên"
       }
     }
@@ -198,7 +199,7 @@ io.on("connection", socket => {
 
   // Sau 1s socket chưa authenticate thì disconnect
   setTimeout(function () {
-    if (!socket.decoded) {
+    if (!socket.decoded && errorAuthenticate.message) {
       console.log(socket.id, " [UNAUTHORIRED]")
       socket.emit("unauthorized", { message: errorAuthenticate.message })
       socket.disconnect()

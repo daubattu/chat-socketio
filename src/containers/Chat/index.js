@@ -4,15 +4,12 @@ import socketIOClient from "socket.io-client"
 import Chat from "../../components/Chat"
 import ModalMemberOfGroup from "./Modals/MemberOfGroup"
 import axios from "axios";
+import { handleLogOut } from "../../actions/auth"
 import { setCurrentGroup, addMembersGroup, deleteMemberOfGroup } from "../../actions/group"
 import { handleUpdateGroup, handleUpdateGroupById } from "../../actions/groups"
-import { Modal, notification } from "antd"
+import { Modal } from "antd"
 
-let socket = socketIOClient("http://chatapp.stovietnam.com")
-
-socket.on("newConnection", data => {
-  console.log(data)
-})
+let socket
 
 const confirm = Modal.confirm
 
@@ -60,7 +57,31 @@ class ChatContainer extends Component {
   }
 
   componentWillMount() {
-    socket.emit("joinRoom", { groupId: this.props.currentUser._id })
+    socket = socketIOClient("http://chatapp.stovietnam.com")
+
+    socket.on("newConnection", data => {
+      console.log(data)
+    })
+
+    socket.on("yourFriendOnline", data => {
+      console.log("your friend have just connected", data)
+    })
+
+    socket.on("yourFriendOffline", data => {
+      console.log("your friend have just disconnected", data)
+    })
+
+    // Authenticate
+    socket.emit('authenticate', { tokenJWT: localStorage.tokenJWT })
+    // On event unauthorized
+    socket.on('unauthorized', data => {
+      console.log('Unauthorized:', data.message)
+      this.props.handleLogOut()
+      this.props.history.replace("/auth/login")
+      this.props.pushNotifycation("error", data.message)
+      socket.disconnect()
+    })
+    // socket.emit("joinRoom", { groupId: this.props.currentUser._id })
     socket.on("typing", () => {
       document.getElementById("message-content").placeholder = ""
       this.setState({ isTyping: true })
@@ -69,7 +90,6 @@ class ChatContainer extends Component {
       this.setState({ isTyping: false })
     })
     socket.on("receiveNewMessage", data => {
-      console.log("receiveNewMessage", data)
       const groupUpdate = {
         ...data.group,
         lastMessage: {
@@ -103,10 +123,6 @@ class ChatContainer extends Component {
     }
   }
 
-  pushNotifycation = (type, message) => {
-    notification[type]({ message })
-  }
-
   actions = {
     confirmDeleteMember: deleteMember => {
       let _this = this
@@ -122,7 +138,7 @@ class ChatContainer extends Component {
                 deleteMemberId: deleteMember._id
               }
             }).then(() => {
-              _this.pushNotifycation("success", `Xóa người dùng ${deleteMember.name || deleteMember.username} khỏi nhóm chat ${group.name} thành công`)
+              _this.props.pushNotifycation("success", `Xóa người dùng ${deleteMember.name || deleteMember.username} khỏi nhóm chat ${group.name} thành công`)
               const members = group.members
 
               for (let i = 0; i < members.length; i++) {
@@ -141,7 +157,7 @@ class ChatContainer extends Component {
                 message = error.response.data.message
               }
 
-              _this.pushNotifycation("error", message)
+              _this.props.pushNotifycation("error", message)
               reject()
             })
           })
@@ -262,7 +278,7 @@ class ChatContainer extends Component {
       let { message } = this.state
 
       if (typeFile !== "image" && files[0].size > 25 * 1024 * 1024) {
-        this.pushNotifycation("error", "Kích thước file upload không được vượt quá 25 MB")
+        this.props.pushNotifycation("error", "Kích thước file upload không được vượt quá 25 MB")
       } else {
         console.log(files.length)
         message.type = typeFile
@@ -334,8 +350,9 @@ class ChatContainer extends Component {
 function mapStateToProps(state) {
   return {
     group: state.group,
-    currentUser: state.auth.user
+    currentUser: state.auth.user,
+    auth: state.auth
   }
 }
 
-export default connect(mapStateToProps, { setCurrentGroup, deleteMemberOfGroup, addMembersGroup, handleUpdateGroup })(ChatContainer)
+export default connect(mapStateToProps, { handleLogOut, setCurrentGroup, deleteMemberOfGroup, addMembersGroup, handleUpdateGroup })(ChatContainer)

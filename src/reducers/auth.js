@@ -18,6 +18,7 @@ export default (state = initialState, action = {}) => {
       }
     case "AUTH_USER_LOG_OUT":
       return {
+        ...state,
         isAuthenticated: false,
         user: {}
       }

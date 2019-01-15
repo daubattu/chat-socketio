@@ -1,5 +1,4 @@
 import React, { Component, Fragment } from "react"
-
 import { notification } from "antd"
 import "antd/dist/antd.css"
 
@@ -22,7 +21,7 @@ class Home extends Component {
         <div className="container-fluid">
           <div className="row">
             <SideBarLeft pushNotifycation={this.pushNotifycation} />
-            <Chat pushNotifycation={this.pushNotifycation} />
+            <Chat history={history} pushNotifycation={this.pushNotifycation} />
             <SideBarRight />
           </div>
         </div>

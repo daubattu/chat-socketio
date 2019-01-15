@@ -44,9 +44,10 @@ async function InitGroup(request, response) {
 }
 
 async function GetGroup(request, response) {
-  const { authenticate } = request
+  const { decoded } = request
+
   try {
-    const groups = await Group.find({ members: authenticate._id })
+    const groups = await Group.find({ members: decoded._id })
       .limit(10)
       .populate({
         path: "lastMessage",
@@ -117,16 +118,16 @@ async function UpdateGroup(request, response) {
 }
 
 async function CreateGroup(request, response) {
-  const { authenticate } = request
+  const { decoded } = request
   try {
     let newGroup = new Group(request.body)
 
-    newGroup.members[newGroup.members.length] = authenticate._id
+    newGroup.members[newGroup.members.length] = decoded._id
 
     await newGroup.save()
 
     const newMessage = new Message({
-      user: authenticate._id,
+      user: decoded._id,
       group: newGroup._id,
       content: "Đã tạo nhóm"
     })

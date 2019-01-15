@@ -31,7 +31,9 @@ class SideBarLeftContainer extends Component {
           this.props.setCurrentGroup(groups[0])
         }
       }, () => {
-        this.setState({ groups: [] })
+        if (this.mounted) {
+          this.setState({ groups: [] })
+        }
       })
   }
 

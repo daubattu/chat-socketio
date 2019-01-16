@@ -24,7 +24,7 @@ async function GetMessage(request, response) {
     }
   }
 
-  const messages = await Message.find(query).populate("user").limit(10).sort({ createdTime: -1 })
+  const messages = await Message.find(query).populate("user").populate("memberReaded", "username name avatar").limit(10).sort({ createdTime: -1 })
 
   return response.status(200).json({ status: 200, messages: messages.reverse() })
 }

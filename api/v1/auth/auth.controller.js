@@ -28,6 +28,7 @@ async function Login(request, response) {
         
         const tokenJWT = jwt.sign({
           _id: user._id,
+          name: user.name,
           username: user.username,
           avatar: user.avatar,
           tokenNotification: newTokenNotification._id

@@ -14,6 +14,8 @@ import { PORT, MONGO_URL, SECRET_KEY_JWT } from "./configs"
 import routers from "./routers"
 import Token from "./models/TokenNotification";
 import TokenNotification from "./models/TokenNotification";
+import Group from "./models/Group";
+import Message from "./models/Message";
 
 const app = express()
 const server = http.Server(app)
@@ -142,9 +144,36 @@ io.on("connection", socket => {
     socket.to(data.groupId).emit('unTyping')
     socket.leave(data.groupId)
   })
-  socket.on("typing", data => {
-    if (data)
-      socket.to(data.groupId).emit('typing')
+  socket.on("typing", async data => {
+    try {
+      if (data) {
+        if (socket.decoded) {
+          socket.to(data.groupId).emit('typing', { user: { _id: socket.decoded._id, name: socket.decoded.name || socket.decoded.username, avatar: socket.decoded.avatar } })
+          const group = await Group.findOne({ _id: data.groupId, members: socket.decoded._id })
+
+          if (group) {
+            const messages = await Message.find({ group: data.groupId, memberReaded: { $ne: socket.decoded._id } })
+
+            if (messages) {
+              for (let message of messages) {
+                if ((message.user !== socket.decoded._id) && message.memberReaded) {
+                  let indexOfMemberReaded = _.findIndex(message.memberReaded, member => member.toString() === socket.decoded._id)
+
+                  if (indexOfMemberReaded === -1) {
+                    socket.to(data.groupId).emit('readedLastMessage', { user: { _id: socket.decoded._id, name: socket.decoded.name || socket.decoded.username, avatar: socket.decoded.avatar } })
+                    message.memberReaded.push(socket.decoded._id)
+                    message.markModified("memberReaded")
+                    message.save()
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.log(error)
+    }
   })
   socket.on("unTyping", data => {
     if (data)

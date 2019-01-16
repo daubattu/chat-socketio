@@ -1,4 +1,5 @@
 import React, { Fragment } from "react"
+import { Tooltip } from "antd"
 
 function customCreatedTime(createdTime) {
   return `${new Date(createdTime).toLocaleTimeString()} - ${new Date(createdTime).toLocaleDateString()}`
@@ -44,8 +45,31 @@ function displayMessageAttachment(type, files) {
   }
 } 
 
+function displayMemberReaded(message, isMe, numberOfMember, isMeFunc) {
+  let readedByText = ""
+  if(message.memberReaded) {
+    for(let memberReaded of message.memberReaded) {
+      if((memberReaded._id !== message.user._id) && !isMeFunc(memberReaded._id)) {
+        readedByText += readedByText === "" ? memberReaded.name : `, ${memberReaded.name}`
+      }
+    }
+
+    if(readedByText === "") return null
+
+    if(numberOfMember === 2) {
+      if(isMe) {
+        return <small><i style={{ color: "green" }} className="fa fa-check-circle-o" aria-hidden="true"></i> Đã xem</small>
+      } else {
+        return null
+      }
+    } else {
+      return <small><i style={{ color: "green" }} className="fa fa-check-circle-o" aria-hidden="true"></i> { readedByText } đã xem</small>
+    }
+  } else return null
+}
+
 function Message(props) {
-  const { message, isMe } = props
+  const { message, isMe, isLatestMessage, numberOfMember } = props
 
   return (
     <div className={isMe(message.user._id) ? "item-message me" : "item-message"}>
@@ -54,18 +78,25 @@ function Message(props) {
         {
           message.content
           &&
-          <span className={ message.error ? "item-message-content error" : "item-message-content" }>
-            { message.content }
-          </span>
+          <Tooltip placement={ isMe(message.user._id) ? "left" : "right" } title={customCreatedTime(message.createdTime)}>
+            <span className={ message.error ? "item-message-content error" : "item-message-content" }>
+              { message.content } 
+            </span> 
+          </Tooltip>
         }
         {
           message.files && message.files.length !== 0
-          ? <div className="message-attachments">
-              { displayMessageAttachment(message.type, message.files)}
-            </div>
+          ? <Tooltip placement={ isMe(message.user._id) ? "left" : "right" } title={customCreatedTime(message.createdTime)}>
+              <div className="message-attachments">
+                { displayMessageAttachment(message.type, message.files) }
+              </div>
+            </Tooltip>
           : null
         }
-        { !message.error && <small className="item-message-created-time">{customCreatedTime(message.createdTime)}</small> }
+        <div className="member-readed-message">
+          { isLatestMessage(message._id) && displayMemberReaded(message, isMe(message.user._id), numberOfMember, isMe) }
+        </div>
+        {/* { !message.error && <small className="item-message-created-time">{customCreatedTime(message.createdTime)}</small> } */}
       </div>
     </div>
   )

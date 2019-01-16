@@ -2,7 +2,7 @@ export default (state = [], action) => {
   switch (action.type) {
     case "GROUPS_INIT_GROUPS":
       state = action.groups
-      break
+      break      
     case "GROUPS_UPDATE_GROUP":
       for (let i = 0; i < state.length; i++) {
         if (state[i]._id === action.group._id) {

@@ -28,6 +28,23 @@ function customGroupAvatar(currentUser, members) {
   )
 }
 
+function displayMemberReaded(message) {
+  let readedByText = ""
+  if(message.memberReaded) {
+    for(let memberReaded of message.memberReaded) {
+      if(memberReaded._id !== message.user._id) {
+        readedByText += readedByText === "" ? memberReaded.name : `, ${memberReaded.name}`
+      }
+    }
+
+    if(readedByText !== "") {
+      return <small><i style={{ color: "green", marginLeft: "5px" }} className="fa fa-check-circle-o" aria-hidden="true"></i></small>
+    }
+    
+    return null
+  } else return null
+}
+
 function customLastMessage(message) {
   if(message.type === "text") {
     return message.content ? message.content.slice(0, 30) : ""
@@ -72,6 +89,7 @@ function Group(props) {
               <small style={{ maxWidth: "80%", overflow: "hidden" }}>
                 { isMe(group.lastMessage.user._id) && "You: " }
                 { customLastMessage(group.lastMessage) }
+                { isMe(group.lastMessage.user._id) && displayMemberReaded(group.lastMessage) }
               </small>
               {
                 !isMe(group.lastMessage.user._id)

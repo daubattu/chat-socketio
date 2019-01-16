@@ -57,10 +57,48 @@ class ChatContainer extends Component {
   }
 
   componentWillMount() {
-    socket = socketIOClient("http://chatapp.stovietnam.com")
+    socket = socketIOClient("localhost:3000")
 
     socket.on("newConnection", data => {
       console.log(data)
+    })
+
+    socket.on("readedLastMessage", data => {
+      if(this.state.messages) {
+        console.log("data readedLastMessage", data)
+        
+        let messages = [...this.state.messages]
+
+        let lastMessage = messages[messages.length - 1]
+
+        if((lastMessage.user._id === this.props.currentUser._id) && (lastMessage.user._id !== data.user._id)) {
+          if(!lastMessage.memberReaded) lastMessage.memberReaded = []
+
+          lastMessage.memberReaded.push(data.user)
+
+          messages[this.state.messages.length - 1] = lastMessage
+
+          console.log(lastMessage)
+
+          let group
+
+          if(this.props.groups) {
+            for(let groupItem of this.props.groups) {
+              if(groupItem._id === lastMessage.group) {
+                group = groupItem
+              }
+            }
+          }
+
+          if(group) {
+            group.lastMessage = lastMessage
+
+            this.props.handleUpdateGroup(group)
+            
+            this.setState({ messages })
+          }
+        }
+      }
     })
 
     socket.on("yourFriendOnline", data => {
@@ -82,7 +120,8 @@ class ChatContainer extends Component {
       socket.disconnect()
     })
     // socket.emit("joinRoom", { groupId: this.props.currentUser._id })
-    socket.on("typing", () => {
+    socket.on("typing", data => {
+      console.log(data)
       document.getElementById("message-content").placeholder = ""
       this.setState({ isTyping: true })
     })
@@ -328,13 +367,21 @@ class ChatContainer extends Component {
     return false
   }
 
+  isLatestMessage = messageId => {
+    if(this.state.messages && (this.state.messages[this.state.messages.length - 1]._id === messageId)) {
+     return true
+    }
+
+    return false
+  }
+
   render() {
     const { group } = this.props
     const { openModal, loading, newMemberIds, messages, message, isTyping, openExtendTypeMessage } = this.state
 
     return (
       <main role="main" className="col-md-7 ml-sm-auto pt-3 px-4 border-right" style={{ height: "calc(100vh - 48px)" }}>
-        <Chat message={message} openExtendTypeMessage={openExtendTypeMessage} isMe={this.isMe} isTyping={isTyping} group={group} actions={this.actions} messages={messages} />
+        <Chat isLatestMessage={this.isLatestMessage} message={message} openExtendTypeMessage={openExtendTypeMessage} isMe={this.isMe} isTyping={isTyping} group={group} actions={this.actions} messages={messages} />
         <ModalMemberOfGroup
           group={group}
           actions={this.actions}
@@ -349,6 +396,7 @@ class ChatContainer extends Component {
 
 function mapStateToProps(state) {
   return {
+    groups: state.groups,
     group: state.group,
     currentUser: state.auth.user,
     auth: state.auth

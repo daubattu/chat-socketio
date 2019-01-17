@@ -14,8 +14,8 @@ async function InitUser (request, response) {
     arrayPromise.push(
       new Promise(resolve => {
         let newUser = new User({
-          username: randomString(6),
-          name: randomString(6),
+          username: `user${i + 1}`,
+          name: `user${i + 1}`,
           email: `user${i + 1}@gmail.com`,
           password: "123456",
           avatar: "/images/user-avatar.png"

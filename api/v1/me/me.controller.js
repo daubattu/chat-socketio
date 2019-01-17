@@ -92,6 +92,10 @@ async function Update(request, response) {
       })
     }
 
+    user.name = request.body.name
+    user.username = request.body.username
+    user.avatar = request.body.avatar
+    
     await user.save()
 
     return response.status(200).json({ status: 200, tokenNotifications: user.tokenNotifications })

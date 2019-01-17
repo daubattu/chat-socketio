@@ -189,6 +189,11 @@ body {
 .group {
   display: flex;
   align-items: center;
+  position: relative;
+}
+.group.has-new-message {
+  background: #eee;
+  transform: translateX(-1px)
 }
 .group .group-avatar {
   margin-right: 10px;

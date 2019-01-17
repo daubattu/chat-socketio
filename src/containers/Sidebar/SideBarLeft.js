@@ -140,8 +140,8 @@ class SideBarLeftContainer extends Component {
     return (
       <nav className="col-md-3 bg-light sidebar">
         <div className="sidebar-sticky">
-          <div className="pt-3 px-4">
-            <div>
+          <div>
+            <div className="pt-3 px-4">
               <h2 style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>Groups <i id="icon-open-modal-make-new-group" onClick={() => this.actions.getFriends()} style={{ cursor: "pointer" }} className="fa fa-plus" aria-hidden="true"></i></h2>
             </div>
             <div className="list-groups">

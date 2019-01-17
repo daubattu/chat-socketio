@@ -4,17 +4,29 @@ export default (state = [], action) => {
       state = action.groups
       break      
     case "GROUPS_UPDATE_GROUP":
+      let indexOfGroup = -1
       for (let i = 0; i < state.length; i++) {
         if (state[i]._id === action.group._id) {
-          state.splice(i, 1)
-          state = [action.group, ...state]
+          indexOfGroup = i
           break
+        }
+      }
+
+      if(indexOfGroup !== -1) {
+        if(action.changePosition) {
+          state.splice(indexOfGroup, 1)
+          state = [action.group, ...state]
+        } else {
+          let stateTemp = [...state]
+          stateTemp[indexOfGroup] = action.group
+          state = [...stateTemp]
         }
       }
       break
     case "GROUPS_UPDATE_GROUP_BY_ID":
       for (let i = 0; i < state.length; i++) {
         if (state[i]._id === action.groupId) {
+          console.log(action.changePosition)
           state.splice(i, 1)
           state = [action.group, ...state]
           break

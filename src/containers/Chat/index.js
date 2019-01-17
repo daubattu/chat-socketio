@@ -57,45 +57,44 @@ class ChatContainer extends Component {
   }
 
   componentWillMount() {
-    socket = socketIOClient("localhost:3000")
+    socket = socketIOClient("http://chatapp.stovietnam.com")
 
     socket.on("newConnection", data => {
       console.log(data)
     })
 
     socket.on("readedLastMessage", data => {
-      if(this.state.messages) {
+      if (this.state.messages) {
         console.log("data readedLastMessage", data)
-        
+
         let messages = [...this.state.messages]
 
         let lastMessage = messages[messages.length - 1]
 
-        if((lastMessage.user._id === this.props.currentUser._id) && (lastMessage.user._id !== data.user._id)) {
-          if(!lastMessage.memberReaded) lastMessage.memberReaded = []
+        if ((lastMessage.user._id === this.props.currentUser._id) && (lastMessage.user._id !== data.user._id)) {
+          if (!lastMessage.memberReaded) lastMessage.memberReaded = []
 
           lastMessage.memberReaded.push(data.user)
 
           messages[this.state.messages.length - 1] = lastMessage
 
-          console.log(lastMessage)
+          this.setState({ messages })
+
+          console.log("lastMessage", lastMessage.user)
 
           let group
 
-          if(this.props.groups) {
-            for(let groupItem of this.props.groups) {
-              if(groupItem._id === lastMessage.group) {
+          if (this.props.groups) {
+            for (let groupItem of this.props.groups) {
+              if (groupItem._id === lastMessage.group) {
                 group = groupItem
               }
             }
           }
 
-          if(group) {
+          if (group) {
             group.lastMessage = lastMessage
-
             this.props.handleUpdateGroup(group)
-            
-            this.setState({ messages })
           }
         }
       }
@@ -134,7 +133,8 @@ class ChatContainer extends Component {
         lastMessage: {
           ...data,
           user: data.user
-        }
+        },
+        numberOfMessagesUnReaded: 0
       }
 
       if (this.props.group._id === data.group._id) {
@@ -145,6 +145,22 @@ class ChatContainer extends Component {
         this.scrollToBottomOfWrapperMessages()
         this.props.handleUpdateGroup(groupUpdate)
       } else {
+
+        if (this.props.currentUser._id !== data.user._id) {
+          let group
+
+          if (this.props.groups) {
+            for (let groupItem of this.props.groups) {
+              if (groupItem._id === groupUpdate._id) {
+                group = groupItem
+              }
+            }
+          }
+          if (group) {
+            groupUpdate.numberOfMessagesUnReaded = group.numberOfMessagesUnReaded + 1
+          }
+        }
+
         this.props.handleUpdateGroup(groupUpdate)
         console.log("Có tin nhắn ở group khác", data.group.name)
       }
@@ -153,11 +169,28 @@ class ChatContainer extends Component {
 
   componentWillReceiveProps(nextProps) {
     if (nextProps.group._id) {
-      this.GetMessage(nextProps.group._id)
-      socket.emit("joinRoom", { groupId: nextProps.group._id })
+      if (nextProps.group._id !== this.props.group._id) {
+        socket.emit("joinRoom", { groupId: nextProps.group._id })
+        this.GetMessage(nextProps.group._id)
+        // Reset numberOfMessagesUnReaded in sidebarleft become 0
+        let group
 
-      if (this.props.group._id && (nextProps.group._id !== this.props.group._id)) {
-        socket.emit("leaveRoom", { groupId: this.props.group._id })
+        if (this.props.groups) {
+          for (let groupItem of this.props.groups) {
+            if (groupItem._id === nextProps.group._id) {
+              group = groupItem
+            }
+          }
+        }
+
+        if (group && group.numberOfMessagesUnReaded !== 0) {
+          group.numberOfMessagesUnReaded = 0
+          this.props.handleUpdateGroup(group, false)
+        }
+
+        if (this.props.group._id) {
+          socket.emit("leaveRoom", { groupId: this.props.group._id })
+        }
       }
     }
   }
@@ -368,8 +401,8 @@ class ChatContainer extends Component {
   }
 
   isLatestMessage = messageId => {
-    if(this.state.messages && (this.state.messages[this.state.messages.length - 1]._id === messageId)) {
-     return true
+    if (this.state.messages && (this.state.messages[this.state.messages.length - 1]._id === messageId)) {
+      return true
     }
 
     return false

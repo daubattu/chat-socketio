@@ -77,10 +77,10 @@ function Group(props) {
   const { group, setCurrentGroup, isMe, currentUser } = props
 
   return (
-    <div className="group">
+    <div className={ group.numberOfMessagesUnReaded !== 0 ? "group has-new-message px-4" : "group px-4" }>
       {customGroupAvatar(currentUser, group.members)}
       <div className="group-detail">
-        <b className="group-name" onClick={() => setCurrentGroup(group)}>{group.name}</b>
+        <b className="group-name" onClick={() => setCurrentGroup(group)}>{group.name} { group.numberOfMessagesUnReaded !== 0 && <span style={{ color: "red" }}>({group.numberOfMessagesUnReaded})</span>}</b>
         {
           group.lastMessage
           &&

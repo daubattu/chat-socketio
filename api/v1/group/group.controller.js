@@ -67,6 +67,11 @@ async function GetGroup(request, response) {
         }
       })
       .sort({ updatedTime: -1 })
+      .lean()
+
+    for(let group of groups) {
+      group.numberOfMessagesUnReaded = await Message.count({ group: group._id, user: { $ne: decoded._id }, memberReaded: { $ne: decoded._id }})
+    }
 
     return response.status(200).json({ status: 200, groups })
   } catch (error) {

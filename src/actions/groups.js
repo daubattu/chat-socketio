@@ -12,10 +12,11 @@ export function handleAddNewGroup(group) {
   }
 }
 
-export function handleUpdateGroup(group) {
+export function handleUpdateGroup(group, changePosition = true) {
   return {
     type: "GROUPS_UPDATE_GROUP",
-    group
+    group,
+    changePosition
   }
 }
 

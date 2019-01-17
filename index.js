@@ -135,9 +135,46 @@ io.on("connection", socket => {
     }
   })
 
-  socket.on("joinRoom", data => {
-    socket.join(data.groupId)
-    socket.to(data.groupId).emit("newConnection", socket.id + " have just connected to" + data.groupId)
+  socket.on("joinRoom", async data => {
+    try {
+      if (data) {
+        if (socket.decoded) {
+          socket.join(data.groupId)
+          socket.to(data.groupId).emit("newConnection", socket.id + " have just connected to" + data.groupId)
+          const group = await Group.findOne({ _id: data.groupId, members: socket.decoded._id })
+
+          if (group) {
+            const latestMessage = await Message.findOne({ group: data.groupId, memberReaded: { $ne: socket.decoded._id } }).sort({ createdTime: -1 })
+
+            if(latestMessage) {
+              let indexOfMemberReaded = _.findIndex(latestMessage.memberReaded, member => member.toString() === socket.decoded._id.toString())
+
+              if (indexOfMemberReaded === -1) {
+                socket.to(data.groupId).emit('readedLastMessage', { user: { _id: socket.decoded._id, name: socket.decoded.name || socket.decoded.username, avatar: socket.decoded.avatar } })
+              }
+
+              const messages = await Message.find({ group: data.groupId, memberReaded: { $ne: socket.decoded._id } })
+
+              if (messages) {
+                for (let message of messages) {
+                  if ((message.user !== socket.decoded._id) && message.memberReaded) {
+                    let indexOfMemberReaded = _.findIndex(message.memberReaded, member => member.toString() === socket.decoded._id)
+  
+                    if (indexOfMemberReaded === -1) {
+                      message.memberReaded.push(socket.decoded._id)
+                      message.markModified("memberReaded")
+                      message.save()
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.log(error)
+    }
   })
 
   socket.on("leaveRoom", data => {
@@ -152,18 +189,27 @@ io.on("connection", socket => {
           const group = await Group.findOne({ _id: data.groupId, members: socket.decoded._id })
 
           if (group) {
-            const messages = await Message.find({ group: data.groupId, memberReaded: { $ne: socket.decoded._id } })
+            const latestMessage = await Message.findOne({ group: data.groupId, memberReaded: { $ne: socket.decoded._id } }).sort({ createdTime: -1 })
 
-            if (messages) {
-              for (let message of messages) {
-                if ((message.user !== socket.decoded._id) && message.memberReaded) {
-                  let indexOfMemberReaded = _.findIndex(message.memberReaded, member => member.toString() === socket.decoded._id)
+            if(latestMessage) {
+              let indexOfMemberReaded = _.findIndex(latestMessage.memberReaded, member => member.toString() === socket.decoded._id.toString())
 
-                  if (indexOfMemberReaded === -1) {
-                    socket.to(data.groupId).emit('readedLastMessage', { user: { _id: socket.decoded._id, name: socket.decoded.name || socket.decoded.username, avatar: socket.decoded.avatar } })
-                    message.memberReaded.push(socket.decoded._id)
-                    message.markModified("memberReaded")
-                    message.save()
+              if (indexOfMemberReaded === -1) {
+                socket.to(data.groupId).emit('readedLastMessage', { user: { _id: socket.decoded._id, name: socket.decoded.name || socket.decoded.username, avatar: socket.decoded.avatar } })
+              }
+
+              const messages = await Message.find({ group: data.groupId, memberReaded: { $ne: socket.decoded._id } })
+
+              if (messages) {
+                for (let message of messages) {
+                  if ((message.user !== socket.decoded._id) && message.memberReaded) {
+                    let indexOfMemberReaded = _.findIndex(message.memberReaded, member => member.toString() === socket.decoded._id)
+  
+                    if (indexOfMemberReaded === -1) {
+                      message.memberReaded.push(socket.decoded._id)
+                      message.markModified("memberReaded")
+                      message.save()
+                    }
                   }
                 }
               }

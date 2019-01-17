@@ -189,6 +189,7 @@ class ChatContainer extends Component {
         }
 
         if (this.props.group._id) {
+          this.setState({ isTyping: false })
           socket.emit("leaveRoom", { groupId: this.props.group._id })
         }
       }

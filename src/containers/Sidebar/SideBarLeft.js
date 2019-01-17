@@ -22,23 +22,14 @@ class SideBarLeftContainer extends Component {
   }
 
   async componentDidMount() {
-    this.mounted = true
     await axios.get("/api/v1/groups")
       .then(responses => {
         const groups = responses.data.groups || []
-        if (this.mounted) {
-          this.props.initGroups(groups)
-          this.props.setCurrentGroup(groups[0])
-        }
+        this.props.initGroups(groups)
+        this.props.setCurrentGroup(groups[0])
       }, () => {
-        if (this.mounted) {
-          this.setState({ groups: [] })
-        }
+        this.setState({ groups: [] })
       })
-  }
-
-  componentWillUnmount() {
-    this.mounted = false
   }
 
   pushNotifycation = (type, message) => {

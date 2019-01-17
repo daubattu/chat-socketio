@@ -170,8 +170,8 @@ class ChatContainer extends Component {
   componentWillReceiveProps(nextProps) {
     if (nextProps.group._id) {
       if (nextProps.group._id !== this.props.group._id) {
-        socket.emit("joinRoom", { groupId: nextProps.group._id })
         this.GetMessage(nextProps.group._id)
+        socket.emit("joinRoom", { groupId: nextProps.group._id })
         // Reset numberOfMessagesUnReaded in sidebarleft become 0
         let group
 

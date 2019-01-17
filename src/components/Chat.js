@@ -76,7 +76,7 @@ function Chat(props) {
         <div>
           <div className="input-message" style={{ marginBottom: "40px", position: "relative" }}>
             <div style={{ position: "relative" }}>
-              {isTyping && <img className="typing" src="/images/typing.gif" />}
+              {isTyping  && !message.content ? <img className="typing" src="/images/typing.gif" /> : null}
               <textarea
                 onKeyPress={event => {
                   if (event.key === 'Enter') {

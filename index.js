@@ -181,6 +181,7 @@ io.on("connection", socket => {
     socket.to(data.groupId).emit('unTyping')
     socket.leave(data.groupId)
   })
+  
   socket.on("typing", async data => {
     try {
       if (data) {
@@ -274,10 +275,10 @@ io.on("connection", socket => {
 
   // Sau 1s socket chưa authenticate thì disconnect
   setTimeout(function () {
-    if (!socket.decoded && errorAuthenticate.message) {
+    if (!socket.decoded) {
       console.log(socket.id, " [UNAUTHORIRED]")
       socket.emit("unauthorized", { message: errorAuthenticate.message })
       socket.disconnect()
     }
-  }, 3000)
+  }, 10000)
 })

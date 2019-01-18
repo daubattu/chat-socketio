@@ -1,10 +1,6 @@
 
 import User from "../../../models/User"
-
-// function generate random string
-function randomString(length) {
-  return Math.random().toString(36).substring(length)
-}
+import UserFriend from "../../../models/UserFriend";
 
 async function InitUser (request, response) {
   await User.deleteMany({})
@@ -40,7 +36,6 @@ async function InitUser (request, response) {
   return response.status(200).json({ status: 200 })
 }
 
-
 async function GetUser(request, response) {
   try {
     const users = await User.find({})
@@ -55,18 +50,18 @@ async function GetUser(request, response) {
 
 async function InitUserFriend(request, response) {
   try {
+    await UserFriend.deleteMany({})
     const users = await User.find({})
 
     for(let user of users) {
-      const friends = []
       for(let u of users) {
         if(u._id !== user._id) {
-          friends.push(u._id)
+          new UserFriend({
+            user: user._id,
+            friend: u._id
+          }).save()
         }
       }
-
-      user.friends = friends
-      user.save()
     }
 
     return response.status(200).json({ success: true })

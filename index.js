@@ -16,6 +16,7 @@ import Token from "./models/TokenNotification";
 import TokenNotification from "./models/TokenNotification";
 import Group from "./models/Group";
 import Message from "./models/Message";
+import UserFriend from "./models/UserFriend";
 
 const app = express()
 const server = http.Server(app)
@@ -80,44 +81,77 @@ io.on("connection", socket => {
                 message: "Tài khoản này đã đăng xuất trước đó"
               }
             } else {
-              if (!tokenNotification.sockets) tokenNotification.sockets = []
-              const indexOfSocket = _.findIndex(tokenNotification.sockets, itemSocket => itemSocket === socket.id)
-              // console.log(indexOfSocket)
-              if (indexOfSocket === -1) {
-                tokenNotification.sockets.push(socket.id)
-              }
+              const user = await User.findById(decoded._id)
 
-              tokenNotification.markModified("sockets")
-
-              await tokenNotification.save(async error => {
-                if (error) {
-                  errorAuthenticate = {
-                    level: "error",
-                    message: "Oops! Something wrong!"
+              if (!user) {
+                errorAuthenticate = {
+                  level: "error",
+                  message: "Người dùng không tồn tại"
+                }
+              } else if (user.status !== 1) {
+                errorAuthenticate = {
+                  level: "error",
+                  message: "Người dùng đã bị xóa khỏi hệ thống"
+                }
+              } else {
+                socket.decoded = decoded
+                if(!user.online) user.online = true
+                user.save()
+                
+                const tokenNotificationsOfUser = await TokenNotification.find({ user: user._id })
+                let numberSocketOfUser = 0
+                if (tokenNotificationsOfUser) {
+                  for (let tokenNotificationOfUser of tokenNotificationsOfUser) {
+                    const numberSocketOfTokenNotification = tokenNotificationOfUser.sockets ? tokenNotificationOfUser.sockets.filter(s => s !== socket.id) : []
+                    numberSocketOfUser += numberSocketOfTokenNotification.length
                   }
-                } else {
-                  let user = await User.findById(decoded._id).populate("friends", "username avatar")
+                }
 
-                  if (user) {
-                    socket.decoded = decoded
+                // Nếu tổng socket của người dùng hiện tại là 0, sau khi connect socket này sẽ là 1 thì emit event online tới friend of user
+                if (numberSocketOfUser === 0) {
+                  const userFriends = await UserFriend.find({ user: user._id }).populate("friend")
+                  
+                  if (userFriends) {
+                    for (let userFriend of userFriends) {
+                      // Get total tokenNotifications of user friend
+                      const tokenNotificationsOfFriends = await TokenNotification.find({ user: userFriend.friend._id })
 
-                    const friends = user.friends || []
-                    for (let friend of friends) {
-                      const tokenNotificationsOfFriends = await TokenNotification.find({ user: friend._id })
                       for (let tokenNotificationsOfFriend of tokenNotificationsOfFriends) {
-                        if (tokenNotificationsOfFriend.sockets.length !== 0) {
-                          socket.to(friend._id).emit("yourFriendOnline", friend)
+                        console.log("tokenNotificationsOfFriend.sockets", tokenNotificationsOfFriend.sockets)
+                        if (tokenNotificationsOfFriend.sockets && tokenNotificationsOfFriend.sockets.length !== 0) {
+                          for (let socketOfFriend of tokenNotificationsOfFriend.sockets) {
+                            console.log("socketOfFriend", socketOfFriend)
+                            if (io.sockets.connected[socketOfFriend]) {
+                              socket.to(socketOfFriend).emit("yourFriendOnline", userFriend.friend)
+                            }
+                          }
                         }
                       }
                     }
-                  } else {
-                    errorAuthenticate = {
-                      level: "error",
-                      message: "Người dùng không tồn tại"
-                    }
                   }
                 }
-              })
+
+                if (!tokenNotification.sockets) tokenNotification.sockets = []
+                tokenNotification.sockets = tokenNotification.sockets.filter(sid => {
+                  if(io.sockets.sockets[sid]) {
+                    return sid
+                  }
+                })
+
+                console.log("tokenNotification.sockets.length is connecting", tokenNotification.sockets.length)
+
+                const indexOfSocket = _.findIndex(tokenNotification.sockets, itemSocket => itemSocket === socket.id)
+
+                if (indexOfSocket === -1) {
+                  tokenNotification.sockets.push(socket.id)
+                  tokenNotification.markModified("sockets")
+                  tokenNotification.save()
+                }
+              }
+
+              if (errorAuthenticate.level === "error" && tokenNotification) {
+                tokenNotification.remove()
+              }
             }
           } else {
             errorAuthenticate = {
@@ -146,7 +180,7 @@ io.on("connection", socket => {
           if (group) {
             const latestMessage = await Message.findOne({ group: data.groupId, memberReaded: { $ne: socket.decoded._id } }).sort({ createdTime: -1 })
 
-            if(latestMessage) {
+            if (latestMessage) {
               let indexOfMemberReaded = _.findIndex(latestMessage.memberReaded, member => member.toString() === socket.decoded._id.toString())
 
               if (indexOfMemberReaded === -1) {
@@ -159,7 +193,7 @@ io.on("connection", socket => {
                 for (let message of messages) {
                   if ((message.user !== socket.decoded._id) && message.memberReaded) {
                     let indexOfMemberReaded = _.findIndex(message.memberReaded, member => member.toString() === socket.decoded._id)
-  
+
                     if (indexOfMemberReaded === -1) {
                       message.memberReaded.push(socket.decoded._id)
                       message.markModified("memberReaded")
@@ -181,7 +215,7 @@ io.on("connection", socket => {
     socket.to(data.groupId).emit('unTyping')
     socket.leave(data.groupId)
   })
-  
+
   socket.on("typing", async data => {
     try {
       if (data) {
@@ -192,7 +226,7 @@ io.on("connection", socket => {
           if (group) {
             const latestMessage = await Message.findOne({ group: data.groupId, memberReaded: { $ne: socket.decoded._id } }).sort({ createdTime: -1 })
 
-            if(latestMessage) {
+            if (latestMessage) {
               let indexOfMemberReaded = _.findIndex(latestMessage.memberReaded, member => member.toString() === socket.decoded._id.toString())
 
               if (indexOfMemberReaded === -1) {
@@ -205,7 +239,7 @@ io.on("connection", socket => {
                 for (let message of messages) {
                   if ((message.user !== socket.decoded._id) && message.memberReaded) {
                     let indexOfMemberReaded = _.findIndex(message.memberReaded, member => member.toString() === socket.decoded._id)
-  
+
                     if (indexOfMemberReaded === -1) {
                       message.memberReaded.push(socket.decoded._id)
                       message.markModified("memberReaded")
@@ -222,45 +256,75 @@ io.on("connection", socket => {
       console.log(error)
     }
   })
+
   socket.on("unTyping", data => {
     if (data)
       socket.to(data.groupId).emit('unTyping')
   })
+
   socket.on("disconnect", async () => {
     const { decoded } = socket
 
     // check socket đã authenticate thành công chưa, nếu đã thành công thì xóa socket trong mảng sockets model TokenNotification
     if (decoded) {
-      let tokenNotification = await TokenNotification.findById(decoded.tokenNotification)
+      setTimeout(async () => {
+        let tokenNotification = await TokenNotification.findById(decoded.tokenNotification)
 
-      if (tokenNotification && tokenNotification.sockets) {
-        let indexOfSocket = -1
-        for (let i = 0; i < tokenNotification.sockets.length; i++) {
-          if (tokenNotification.sockets[i] === socket.id) {
-            indexOfSocket = i
-            break
+        console.log("tokenNotification", tokenNotification.sockets)
+
+        if (tokenNotification && tokenNotification.sockets) {
+          let indexOfSocket = -1
+          for (let i = 0; i < tokenNotification.sockets.length; i++) {
+            if (tokenNotification.sockets[i] === socket.id) {
+              indexOfSocket = i
+              break
+            }
+          }
+
+          console.log("indexOfSocket", indexOfSocket)
+
+          if (indexOfSocket !== -1) {
+            tokenNotification.sockets.splice(indexOfSocket, 1)
+            tokenNotification.markModified("sockets")
+            await tokenNotification.save()
           }
         }
-        if (indexOfSocket !== -1) {
-          tokenNotification.sockets.splice(indexOfSocket, 1)
-          tokenNotification.markModified("sockets")
-          tokenNotification.save()
-          const user = await User.findById(decoded._id).populate("friends", "username avatar")
 
-          if (user) {
-            const friends = user.friends || []
-            for (let friend of friends) {
-              // find all tokenNotifications friends of user
-              const tokenNotificationsOfFriends = await TokenNotification.find({ user: friend._id })
-              for (let tokenNotificationsOfFriend of tokenNotificationsOfFriends) {
-                if (tokenNotificationsOfFriend.sockets.length !== 0) {
-                  socket.to(friend._id).emit("yourFriendOffline", friend)
+        let user = await User.findById(decoded._id)
+
+        if (user) {
+          socket.decoded = decoded
+          const tokenNotificationsOfUser = await TokenNotification.find({ user: user._id })
+          let numberSocketOfUser = 0
+          if (tokenNotificationsOfUser) {
+            for (let tokenNotificationOfUser of tokenNotificationsOfUser) {
+              numberSocketOfUser += tokenNotificationOfUser.sockets ? tokenNotificationOfUser.sockets.length : 0
+            }
+          }
+
+          // Nếu tổng socket của người dùng hiện tại là 0 sau khi đã splice socket này sẽ là 1 thì emit event offline tới friend of user
+          if (numberSocketOfUser === 0) {
+            const userFriends = await UserFriend.find({ user: user._id }).populate("friend")
+
+            if (userFriends) {
+              for (let userFriend of userFriends) {
+                // Get total tokenNotifications of user frined
+                const tokenNotificationsOfFriends = await TokenNotification.find({ user: userFriend.friend._id })
+                for (let tokenNotificationsOfFriend of tokenNotificationsOfFriends) {
+                  if (tokenNotificationsOfFriend.sockets) {
+                    for (let socketOfFriend of tokenNotificationsOfFriend.sockets) {
+                      io.to(socketOfFriend).emit("yourFriendOffline", userFriend)
+                    }
+                  }
                 }
               }
             }
+
+            if(user.online) user.online = false
+            user.save()
           }
         }
-      }
+      }, 5000)
     }
 
     // leave all room socket joined
@@ -277,8 +341,8 @@ io.on("connection", socket => {
   setTimeout(function () {
     if (!socket.decoded) {
       console.log(socket.id, " [UNAUTHORIRED]")
-      socket.emit("unauthorized", { message: errorAuthenticate.message })
+      socket.emit("unauthorized", errorAuthenticate)
       socket.disconnect()
     }
-  }, 10000)
+  }, 5000)
 })

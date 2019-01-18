@@ -57,7 +57,8 @@ class ChatContainer extends Component {
   }
 
   componentWillMount() {
-    socket = socketIOClient("http://chatapp.stovietnam.com")
+    socket = socketIOClient("localhost:3000")
+    // socketIOClient("http://chatapp.stovietnam.com")
 
     socket.on("newConnection", data => {
       console.log(data)
@@ -110,13 +111,20 @@ class ChatContainer extends Component {
 
     // Authenticate
     socket.emit('authenticate', { tokenJWT: localStorage.tokenJWT })
+
     // On event unauthorized
     socket.on('unauthorized', data => {
-      console.log('Unauthorized:', data.message)
-      this.props.handleLogOut()
-      this.props.history.replace("/auth/login")
-      this.props.pushNotifycation("error", data.message)
-      socket.disconnect()
+      console.log('unauthorized: ', data.message)
+      if(data) {
+        this.props.pushNotifycation("error", data.message)
+        socket.disconnect()
+        if (data.level === "error") {
+          this.props.handleLogOut()
+          this.props.history.replace("/auth/login")
+        }
+      } else {
+        this.props.pushNotifycation("error", "Không có phản hồi từ server")
+      }
     })
     // socket.emit("joinRoom", { groupId: this.props.currentUser._id })
     socket.on("typing", data => {
@@ -124,9 +132,11 @@ class ChatContainer extends Component {
       document.getElementById("message-content").placeholder = ""
       this.setState({ isTyping: true })
     })
+
     socket.on("unTyping", () => {
       this.setState({ isTyping: false })
     })
+
     socket.on("receiveNewMessage", data => {
       const groupUpdate = {
         ...data.group,

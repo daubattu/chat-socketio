@@ -8,6 +8,7 @@ import { handleLogOut } from "../../actions/auth"
 import { setCurrentGroup, addMembersGroup, deleteMemberOfGroup } from "../../actions/group"
 import { handleUpdateGroup, handleUpdateGroupById } from "../../actions/groups"
 import { Modal } from "antd"
+import { updateFriend } from "../../actions/friends"
 
 let socket
 
@@ -57,8 +58,7 @@ class ChatContainer extends Component {
   }
 
   componentWillMount() {
-    socket = socketIOClient("localhost:3000")
-    // socketIOClient("http://chatapp.stovietnam.com")
+    socket = socketIOClient("http://chatapp.stovietnam.com")
 
     socket.on("newConnection", data => {
       console.log(data)
@@ -103,10 +103,12 @@ class ChatContainer extends Component {
 
     socket.on("yourFriendOnline", data => {
       console.log("your friend have just connected", data)
+      this.props.updateFriend({ ...data, online: true })
     })
 
     socket.on("yourFriendOffline", data => {
       console.log("your friend have just disconnected", data)
+      this.props.updateFriend({ ...data, online: false })
     })
 
     // Authenticate
@@ -447,4 +449,4 @@ function mapStateToProps(state) {
   }
 }
 
-export default connect(mapStateToProps, { handleLogOut, setCurrentGroup, deleteMemberOfGroup, addMembersGroup, handleUpdateGroup })(ChatContainer)
+export default connect(mapStateToProps, { handleLogOut, setCurrentGroup, deleteMemberOfGroup, addMembersGroup, handleUpdateGroup, updateFriend })(ChatContainer)

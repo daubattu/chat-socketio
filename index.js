@@ -109,7 +109,7 @@ io.on("connection", socket => {
 
                 // Nếu tổng socket của người dùng hiện tại là 0, sau khi connect socket này sẽ là 1 thì emit event online tới friend of user
                 if (numberSocketOfUser === 0) {
-                  const userFriends = await UserFriend.find({ user: user._id }).populate("friend")
+                  const userFriends = await UserFriend.find({ user: user._id }).populate("friend", "username avatar name")
                   
                   if (userFriends) {
                     for (let userFriend of userFriends) {
@@ -122,7 +122,7 @@ io.on("connection", socket => {
                           for (let socketOfFriend of tokenNotificationsOfFriend.sockets) {
                             console.log("socketOfFriend", socketOfFriend)
                             if (io.sockets.connected[socketOfFriend]) {
-                              socket.to(socketOfFriend).emit("yourFriendOnline", userFriend.friend)
+                              socket.to(socketOfFriend).emit("yourFriendOnline", { _id: user._id, name: user.name, username: user.username, avatar: user.avatar })
                             }
                           }
                         }
@@ -304,7 +304,7 @@ io.on("connection", socket => {
 
           // Nếu tổng socket của người dùng hiện tại là 0 sau khi đã splice socket này sẽ là 1 thì emit event offline tới friend of user
           if (numberSocketOfUser === 0) {
-            const userFriends = await UserFriend.find({ user: user._id }).populate("friend")
+            const userFriends = await UserFriend.find({ user: user._id }).populate("friend", "username avatar name")
 
             if (userFriends) {
               for (let userFriend of userFriends) {
@@ -313,14 +313,17 @@ io.on("connection", socket => {
                 for (let tokenNotificationsOfFriend of tokenNotificationsOfFriends) {
                   if (tokenNotificationsOfFriend.sockets) {
                     for (let socketOfFriend of tokenNotificationsOfFriend.sockets) {
-                      io.to(socketOfFriend).emit("yourFriendOffline", userFriend)
+                      io.to(socketOfFriend).emit("yourFriendOffline", { _id: user._id, name: user.name, username: user.username, avatar: user.avatar, latestTimeConnection: Date.now() })
                     }
                   }
                 }
               }
             }
 
-            if(user.online) user.online = false
+            if(user.online) {
+              user.online = false
+              user.latestTimeConnection = Date.now()
+            }
             user.save()
           }
         }

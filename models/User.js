@@ -10,7 +10,8 @@ const UserSchema = new Schema({
   name: String,
   avatar: { type: String, default: "/images/user-avatar.png" },
   status: { type: Number, default: 1 },
-  online: { type: Boolean, default: false }
+  online: { type: Boolean, default: false },
+  latestTimeConnection: Number
 })
 
 UserSchema.pre("save", function (next) {

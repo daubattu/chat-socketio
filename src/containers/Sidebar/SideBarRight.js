@@ -2,7 +2,7 @@ import React, { Component, Fragment } from "react"
 import SideBarRight from "../../components/SideBar/SideBarRight/index"
 import axios from "axios";
 import { connect } from "react-redux"
-import { initFriendsOnline } from "../../actions/friends"
+import { initFriends } from "../../actions/friends"
 
 class SideBarRightContainer extends Component {
 
@@ -28,14 +28,14 @@ class SideBarRightContainer extends Component {
 
   async componentDidMount() {
     const friendsOnline = await this.getFriends()
-    this.props.initFriendsOnline(friendsOnline)
+    this.props.initFriends(friendsOnline)
   }
 
   render() {
     const { friends } = this.props
     return (
       <Fragment>
-        <SideBarRight friends={ friends.filter ? friends.filter : friends.online } />
+        <SideBarRight friends={ friends.filter ? friends.filter : friends.all } />
       </Fragment>
     )
   }
@@ -48,4 +48,4 @@ function mapStateToProps(state) {
   }
 }
 
-export default connect(mapStateToProps, { initFriendsOnline })(SideBarRightContainer)
+export default connect(mapStateToProps, { initFriends })(SideBarRightContainer)

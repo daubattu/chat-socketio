@@ -49,7 +49,8 @@ async function GetFriends(request, response) {
               username: "$frined.username",
               name: "$friend.name",
               avatar: "$friend.avatar",
-              online: "$friend.online"
+              online: "$friend.online",
+              latestTimeConnection: "$friend.latestTimeConnection"
             }
           },
           { $match: filter },
@@ -69,49 +70,6 @@ async function GetFriends(request, response) {
     console.log(error)
     return response.status(500).json({ status: 500, message: "Oops! Something wrong!" })
   }
-}
-
-
-function updatetokenNotification(user, request) {
-  const { device } = request
-
-  if (user.tokenNotifications) {
-    const id = device.id
-    let indexOftokenNotification = -1
-    for (let i = 0; i < user.tokenNotifications.length; i++) {
-      if (user.tokenNotifications[i].id === id) {
-        indexOftokenNotification = i
-        user.tokenNotifications[i].value = request.body.tokenNotification
-        break
-      }
-    }
-
-    if (indexOftokenNotification === -1) {
-      user.tokenNotifications.push(
-        {
-          value: request.body.tokenNotification,
-          device: device.name,
-          id: device.id
-        }
-      )
-    }
-  } else {
-    user.tokenNotifications = [
-      {
-        value: request.body.tokenNotification,
-        device: device.name,
-        id: device.id
-      }
-    ]
-  }
-
-  const tokenNotifications = user.tokenNotifications.filter(tokenNotification => {
-    if (tokenNotification.id && tokenNotification.value && tokenNotification.device) {
-      return tokenNotification
-    }
-  })
-
-  return tokenNotifications
 }
 
 async function Update(request, response) {

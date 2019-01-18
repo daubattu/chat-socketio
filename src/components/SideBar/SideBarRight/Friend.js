@@ -1,4 +1,5 @@
 import React from "react"
+import moment from "moment"
 
 const styles = {
   avatar: {
@@ -14,6 +15,10 @@ const styles = {
   }
 }
 
+function customLatestTimeConnection(latestTimeConnection) {
+  return <small>{new Date(latestTimeConnection).toLocaleTimeString()} - {new Date(latestTimeConnection).toLocaleDateString()}</small>
+}
+
 function Friend(props) {
   const { friend } = props
 
@@ -24,7 +29,11 @@ function Friend(props) {
         <b>{ friend.name }</b>
       </div>
       <div className="item-list-friends-status">
-        <div style={{ ...styles.status, background: friend.online ? "green" : "red" }}></div>
+        {
+          friend.online
+          ? <div style={{ ...styles.status, background: "green" }}></div>
+          : (friend.latestTimeConnection ? customLatestTimeConnection(friend.latestTimeConnection) : <div style={{ ...styles.status, background: "red" }}></div>) 
+        }
       </div>
     </div>
   )

@@ -377,3 +377,13 @@ body {
 .input-message .fa-picture-o.selected, .input-message .fa-video-camera.selected, .input-message .fa-paperclip.selected {
   color: red;
 }
+
+.item-list-friends {
+  padding: 5px 0;
+  transition: all .15s linear;
+  cursor: pointer;
+}
+
+.item-list-friends:hover {
+  background: #eee;
+}

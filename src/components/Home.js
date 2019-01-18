@@ -3,7 +3,7 @@ import { notification } from "antd"
 import "antd/dist/antd.css"
 
 import SideBarLeft from "../containers/Sidebar/SideBarLeft"
-import SideBarRight from "./SideBar/SideBarRight"
+import SideBarRight from "../containers/Sidebar/SideBarRight"
 import Chat from "../containers/Chat/index"
 import Header from "../containers/Header"
 

@@ -15,7 +15,7 @@ async function GetFriends(request, response) {
     limit: parseInt(request.query.limit) * 0 === 0 ? parseInt(request.query.limit) : 25
   }
 
-  let filter = {}, sort = { name: 1 }
+  let filter = {}, sort = { online: -1 }
 
   for(let prop of props) {
     if(request.query[prop]) {

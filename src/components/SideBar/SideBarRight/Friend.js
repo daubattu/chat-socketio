@@ -20,10 +20,10 @@ function customLatestTimeConnection(latestTimeConnection) {
 }
 
 function Friend(props) {
-  const { friend } = props
+  const { friend, setCurrentGroup } = props
 
   return (
-    <div className="item-list-friends" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+    <div onClick={() => setCurrentGroup(friend.group)} className="item-list-friends" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
       <div className="item-list-friends-info">
         <img src={friend.avatar} style={styles.avatar} />
         <b>{ friend.name }</b>

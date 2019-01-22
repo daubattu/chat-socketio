@@ -134,7 +134,8 @@ async function CreateGroup(request, response) {
     const newMessage = new Message({
       user: decoded._id,
       group: newGroup._id,
-      content: "Đã tạo nhóm"
+      content: "Đã tạo nhóm",
+      type: "text"
     })
 
     await newMessage.save()
@@ -142,7 +143,7 @@ async function CreateGroup(request, response) {
     newGroup.lastMessage = newMessage._id
     newGroup.save()
 
-    const newGroupAfterSave = await Group.findById(newGroup._id).populate("members", "username avatar")
+    const newGroupAfterSave = await Group.findById(newGroup._id).populate("members", "username name avatar")
 
     return response.status(200).json({ status: 200, newGroup: newGroupAfterSave })
   } catch (error) {

@@ -1,6 +1,7 @@
 
 import User from "../../../models/User"
 import UserFriend from "../../../models/UserFriend";
+import Group from "../../../models/Group";
 
 async function InitUser (request, response) {
   await User.deleteMany({})
@@ -56,9 +57,15 @@ async function InitUserFriend(request, response) {
     for(let user of users) {
       for(let u of users) {
         if(u._id !== user._id) {
+          const newGroup = await new Group({
+            members: [u._id, user._id],
+            name: u.name + user.name
+          }).save()
+          
           new UserFriend({
             user: user._id,
-            friend: u._id
+            friend: u._id,
+            group: newGroup._id
           }).save()
         }
       }

@@ -2,6 +2,7 @@ import User from "../../../models/User";
 import TokenNotification from "../../../models/TokenNotification";
 import UserFriend from "../../../models/UserFriend";
 import mongoose from "mongoose"
+import Group from "../../../models/Group";
 
 async function GetFriends(request, response) {
   const { decoded } = request
@@ -15,7 +16,7 @@ async function GetFriends(request, response) {
     limit: parseInt(request.query.limit) * 0 === 0 ? parseInt(request.query.limit) : 25
   }
 
-  let filter = {}, sort = { online: -1 }
+  let filter = {}, sort = { online: -1, latestTimeConnection: -1, name: 1 }
 
   for(let prop of props) {
     if(request.query[prop]) {
@@ -42,6 +43,15 @@ async function GetFriends(request, response) {
               as: "friend"
             }
           },
+          {
+            $lookup: {
+              from: "groups",
+              localField: "group",
+              foreignField: "_id",
+              as: "group"
+            }
+          },
+          { $unwind: "$group" },
           { $unwind: "$friend" },
           {
             $project: {
@@ -50,6 +60,7 @@ async function GetFriends(request, response) {
               name: "$friend.name",
               avatar: "$friend.avatar",
               online: "$friend.online",
+              group: "$group",
               latestTimeConnection: "$friend.latestTimeConnection"
             }
           },
@@ -61,8 +72,6 @@ async function GetFriends(request, response) {
       )
 
     console.log(userFriends)
-
-    // find({ user: decoded._id }).populate({ path: "friend", select: { username: 1, avatar: 1, name: 1 } })
 
     return response.status(200).json({ status: 200, friends: userFriends })
 

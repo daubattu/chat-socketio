@@ -3,6 +3,7 @@ import SideBarRight from "../../components/SideBar/SideBarRight/index"
 import axios from "axios";
 import { connect } from "react-redux"
 import { initFriends } from "../../actions/friends"
+import { setCurrentGroup } from "../../actions/group"
 
 class SideBarRightContainer extends Component {
 
@@ -32,10 +33,10 @@ class SideBarRightContainer extends Component {
   }
 
   render() {
-    const { friends } = this.props
+    const { friends, setCurrentGroup } = this.props
     return (
       <Fragment>
-        <SideBarRight friends={ friends.filter ? friends.filter : friends.all } />
+        <SideBarRight setCurrentGroup={setCurrentGroup} friends={ friends.filter ? friends.filter : friends.all } />
       </Fragment>
     )
   }
@@ -48,4 +49,4 @@ function mapStateToProps(state) {
   }
 }
 
-export default connect(mapStateToProps, { initFriends })(SideBarRightContainer)
+export default connect(mapStateToProps, { initFriends, setCurrentGroup })(SideBarRightContainer)

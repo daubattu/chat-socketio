@@ -157,7 +157,6 @@ class ChatContainer extends Component {
         this.scrollToBottomOfWrapperMessages()
         this.props.handleUpdateGroup(groupUpdate)
       } else {
-
         if (this.props.currentUser._id !== data.user._id) {
           let group
 
@@ -320,8 +319,10 @@ class ChatContainer extends Component {
             content: null,
             files: null
           }
-          this.setState({ message })
-        }, error => {
+          this.scrollToBottomOfWrapperMessages()
+          document.getElementById("message-content").focus()
+          this.setState({ message, isTyping: false })
+        }, () => {
           let { messages } = this.state
           let user = this.props.currentUser
 
@@ -330,7 +331,6 @@ class ChatContainer extends Component {
           this.setState({ messages })
 
           this.scrollToBottomOfWrapperMessages()
-          console.log(error)
         })
     },
     handleOnTyping: () => {

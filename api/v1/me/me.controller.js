@@ -3,6 +3,7 @@ import TokenNotification from "../../../models/TokenNotification";
 import UserFriend from "../../../models/UserFriend";
 import mongoose from "mongoose"
 import Group from "../../../models/Group";
+import { SSL_OP_SSLEAY_080_CLIENT_DH_BUG } from "constants";
 
 async function GetFriends(request, response) {
   const { decoded } = request
@@ -18,10 +19,10 @@ async function GetFriends(request, response) {
 
   let filter = {}, sort = { online: -1, latestTimeConnection: -1, name: 1 }
 
-  for(let prop of props) {
-    if(request.query[prop]) {
-      if(prop === "online") {
-        if(request.query.online === "true") {
+  for (let prop of props) {
+    if (request.query[prop]) {
+      if (prop === "online") {
+        if (request.query.online === "true") {
           filter.online = true
         } else {
           filter.online = false
@@ -43,15 +44,6 @@ async function GetFriends(request, response) {
               as: "friend"
             }
           },
-          {
-            $lookup: {
-              from: "groups",
-              localField: "group",
-              foreignField: "_id",
-              as: "group"
-            }
-          },
-          { $unwind: "$group" },
           { $unwind: "$friend" },
           {
             $project: {
@@ -71,10 +63,35 @@ async function GetFriends(request, response) {
         ]
       )
 
-    console.log(userFriends)
+    // let arrayPromise = []
+    // if (userFriends) {
+    //   for (let i = 0; i < userFriends.length; i++) {
+    //     const userFriend = userFriends[i]
+    //     console.log(userFriend)
 
-    return response.status(200).json({ status: 200, friends: userFriends })
+    //     arrayPromise.push(
+    //       new Promise(async resolve => {
+    //         const group = await Group.findById(userFriend.group).populate("members", "username name avatar")
+    //         resolve(group)
+    //       })
+    //     )
+    //   }
+    // }
 
+    // await Promise.all(arrayPromise)
+    //   .then(groups => {
+    //     for (let i = 0; i < groups.length; i++) {
+    //       userFriends[i].group = groups[i]
+    //     }
+    //   })
+    
+    if(userFriends) {
+      for(let userFriend of userFriends) {
+        userFriend.group = await Group.findById(userFriend.group).populate("members", "username name avatar")
+      }
+    }
+
+    return response.status(200).json({ status: 200, friends: userFriends })    
   } catch (error) {
     console.log(error)
     return response.status(500).json({ status: 500, message: "Oops! Something wrong!" })

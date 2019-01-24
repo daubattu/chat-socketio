@@ -95,7 +95,10 @@ io.on("connection", socket => {
                 }
               } else {
                 socket.decoded = decoded
-                if(!user.online) user.online = true
+                if(!user.online) {
+                  user.online = true
+                  user.latestTimeConnection = 0
+                }
                 user.save()
                 
                 const tokenNotificationsOfUser = await TokenNotification.find({ user: user._id })

@@ -33,8 +33,7 @@ class ChatContainer extends Component {
     socket: null,
     isTyping: false,
     openExtendTypeMessage: false,
-    deleteMemberId: null,
-    usersTyping: []
+    deleteMemberId: null
   }
 
   scrollToBottomOfWrapperMessages() {
@@ -140,10 +139,7 @@ class ChatContainer extends Component {
     })
 
     socket.on("unTyping", () => {
-      const userId = data.user._id
-      if(userId !== this.props.currentUser._id) {
-        this.setState({ isTyping: false })
-      }
+      this.setState({ isTyping: false })
     })
 
     socket.on("receiveNewMessage", data => {
@@ -341,6 +337,7 @@ class ChatContainer extends Component {
         })
     },
     handleOnTyping: () => {
+      this.setState({ isTyping: false })
       socket.emit("typing", { groupId: this.props.group._id })
     },
     handleUnTyping: () => {

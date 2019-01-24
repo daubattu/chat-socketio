@@ -4,6 +4,7 @@ import User from "../../../models/User"
 import { SECRET_KEY_JWT } from "../../../configs"
 // import { detectDevice } from "../../../middlewave"
 import TokenNotification from "../../../models/TokenNotification";
+import UserFriend from "../../../models/UserFriend"
 
 async function Login(request, response) {
   try {
@@ -25,7 +26,7 @@ async function Login(request, response) {
         if (!newTokenNotification._id) {
           return response.status(500).json({ status: 500, message: "Oops! Something wrong!", error: { message: "Lỗi mã hóa thông tin người dùng" } })
         }
-        
+
         const tokenJWT = jwt.sign({
           _id: user._id,
           name: user.name,
@@ -55,7 +56,39 @@ async function Logout(request, response) {
 
     const tokenNotification = await TokenNotification.findById(decoded.tokenNotification)
 
-    if(tokenNotification) tokenNotification.remove()
+    if (tokenNotification) tokenNotification.remove()
+
+    let numberOfSocket = 0
+    const tokenNotifications = await TokenNotification.find({ user: user._id, _id: { $ne: tokenNotification._id } })
+
+    if (tokenNotifications) {
+      for (let itemTokenNotification of tokenNotifications) {
+        if (itemTokenNotification.sockets) numberOfSocket += itemTokenNotification.sockets.length
+      }
+    }
+
+    console.log(numberOfSocket)
+    
+    if (numberOfSocket === 0) {
+      const userFriends = await UserFriend.find({ user: user._id }).populate("friend", "username avatar name")
+
+      if (userFriends) {
+        for (let userFriend of userFriends) {
+          // Get total tokenNotifications of user frined
+          const tokenNotificationsOfFriends = await TokenNotification.find({ user: userFriend.friend._id })
+          for (let tokenNotificationsOfFriend of tokenNotificationsOfFriends) {
+            if (tokenNotificationsOfFriend.sockets) {
+              for (let socketOfFriend of tokenNotificationsOfFriend.sockets) {
+                io.to(socketOfFriend).emit("yourFriendOffline", { _id: user._id, name: user.name, username: user.username, avatar: user.avatar, latestTimeConnection: Date.now() })
+              }
+            }
+          }
+        }
+      }
+      user.online = false
+      user.latestTimeConnection = Date.now()
+      user.save()
+    }
 
     return response.status(200).json({ status: 200 })
   } catch (error) {

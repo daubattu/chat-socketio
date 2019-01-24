@@ -32,8 +32,8 @@ function displayMemberReaded(message) {
   let readedByText = ""
   if(message.memberReaded) {
     for(let memberReaded of message.memberReaded) {
-      if(memberReaded._id !== message.user._id) {
-        readedByText += readedByText === "" ? memberReaded.name : `, ${memberReaded.name}`
+      if(memberReaded !== message.user._id) {
+        readedByText += readedByText === "" ? memberReaded : `, ${memberReaded}`
       }
     }
 

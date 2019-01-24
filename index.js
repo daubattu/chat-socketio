@@ -125,7 +125,8 @@ io.on("connection", socket => {
                           for (let socketOfFriend of tokenNotificationsOfFriend.sockets) {
                             console.log("socketOfFriend", socketOfFriend)
                             if (io.sockets.connected[socketOfFriend]) {
-                              socket.to(socketOfFriend).emit("yourFriendOnline", { _id: user._id, name: user.name, username: user.username, avatar: user.avatar })
+                              const groupChatOfUserAndFriend = await Group.findById(userFriend.group).populate("members", "name avatar username")
+                              socket.to(socketOfFriend).emit("yourFriendOnline", { _id: user._id, name: user.name, username: user.username, avatar: user.avatar, group: groupChatOfUserAndFriend })
                             }
                           }
                         }

@@ -16,7 +16,6 @@ import Token from "./models/TokenNotification";
 import TokenNotification from "./models/TokenNotification";
 import Group from "./models/Group";
 import Message from "./models/Message";
-import UserFriend from "./models/UserFriend";
 
 const app = express()
 const server = http.Server(app)
@@ -95,12 +94,12 @@ io.on("connection", socket => {
                 }
               } else {
                 socket.decoded = decoded
-                if(!user.online) {
+                if (!user.online) {
                   user.online = true
                   user.latestTimeConnection = 0
                 }
                 user.save()
-                
+
                 const tokenNotificationsOfUser = await TokenNotification.find({ user: user._id })
                 let numberSocketOfUser = 0
                 if (tokenNotificationsOfUser) {
@@ -112,22 +111,33 @@ io.on("connection", socket => {
 
                 // Nếu tổng socket của người dùng hiện tại là 0, sau khi connect socket này sẽ là 1 thì emit event online tới friend of user
                 if (numberSocketOfUser === 0) {
-                  const userFriends = await UserFriend.find({ user: user._id }).populate("friend", "username avatar name")
-                  
-                  if (userFriends) {
-                    for (let userFriend of userFriends) {
-                      // Get total tokenNotifications of user friend
-                      const tokenNotificationsOfFriends = await TokenNotification.find({ user: userFriend.friend._id })
+                  const friends = await User.find({ _id: { $in: user.friends }, online: true }, "_id")
 
-                      for (let tokenNotificationsOfFriend of tokenNotificationsOfFriends) {
-                        console.log("tokenNotificationsOfFriend.sockets", tokenNotificationsOfFriend.sockets)
-                        if (tokenNotificationsOfFriend.sockets && tokenNotificationsOfFriend.sockets.length !== 0) {
-                          for (let socketOfFriend of tokenNotificationsOfFriend.sockets) {
-                            console.log("socketOfFriend", socketOfFriend)
-                            if (io.sockets.connected[socketOfFriend]) {
-                              const groupChatOfUserAndFriend = await Group.findById(userFriend.group).populate("members", "name avatar username")
-                              socket.to(socketOfFriend).emit("yourFriendOnline", { _id: user._id, name: user.name, username: user.username, avatar: user.avatar, group: groupChatOfUserAndFriend })
-                            }
+                  console.log("friends", friends)
+
+                  for (let friend of friends) {
+                    // Get total tokenNotifications of user friend
+                    const tokenNotificationsOfFriends = await TokenNotification.find({ user: friend._id })
+
+                    for (let tokenNotificationsOfFriend of tokenNotificationsOfFriends) {
+                      console.log("tokenNotificationsOfFriend.sockets", tokenNotificationsOfFriend.sockets)
+                      if (tokenNotificationsOfFriend.sockets && tokenNotificationsOfFriend.sockets.length !== 0) {
+                        for (let socketOfFriend of tokenNotificationsOfFriend.sockets) {
+                          console.log("socketOfFriend", socketOfFriend)
+                          if (io.sockets.connected[socketOfFriend]) {
+                            const groupChatOfUserAndFriend = await Group.findOne({
+                              $and: [
+                                {
+                                  $or: [
+                                    { members: [user._id, friend._id] },
+                                    { members: [friend._id, user._id] }
+                                  ]
+                                },
+                                { members: { $size: 2 } }
+                              ]
+                            }).populate("members", "username name avatar")
+
+                            socket.to(socketOfFriend).emit("yourFriendOnline", { _id: user._id, name: user.name, username: user.username, avatar: user.avatar, group: groupChatOfUserAndFriend })
                           }
                         }
                       }
@@ -137,7 +147,7 @@ io.on("connection", socket => {
 
                 if (!tokenNotification.sockets) tokenNotification.sockets = []
                 tokenNotification.sockets = tokenNotification.sockets.filter(sid => {
-                  if(io.sockets.sockets[sid]) {
+                  if (io.sockets.sockets[sid]) {
                     return sid
                   }
                 })
@@ -308,17 +318,18 @@ io.on("connection", socket => {
 
           // Nếu tổng socket của người dùng hiện tại là 0 sau khi đã splice socket này sẽ là 1 thì emit event offline tới friend of user
           if (numberSocketOfUser === 0) {
-            const userFriends = await UserFriend.find({ user: user._id }).populate("friend", "username avatar name")
+            const friends = await User.find({ _id: { $in: user.friends }, online: true }, "_id")
 
-            if (userFriends) {
-              for (let userFriend of userFriends) {
-                // Get total tokenNotifications of user frined
-                const tokenNotificationsOfFriends = await TokenNotification.find({ user: userFriend.friend._id })
-                for (let tokenNotificationsOfFriend of tokenNotificationsOfFriends) {
-                  if (tokenNotificationsOfFriend.sockets) {
-                    for (let socketOfFriend of tokenNotificationsOfFriend.sockets) {
-                      io.to(socketOfFriend).emit("yourFriendOffline", { _id: user._id, name: user.name, username: user.username, avatar: user.avatar, latestTimeConnection: Date.now() })
-                    }
+            console.log(friends)
+
+            for (let friend of friends) {
+              // Get total tokenNotifications of user friend
+              const tokenNotificationsOfFriends = await TokenNotification.find({ user: friend._id })
+
+              for (let tokenNotificationsOfFriend of tokenNotificationsOfFriends) {
+                if (tokenNotificationsOfFriend.sockets) {
+                  for (let socketOfFriend of tokenNotificationsOfFriend.sockets) {
+                    io.to(socketOfFriend).emit("yourFriendOffline", { _id: user._id, name: user.name, username: user.username, avatar: user.avatar, latestTimeConnection: Date.now() })
                   }
                 }
               }

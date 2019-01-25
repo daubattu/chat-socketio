@@ -1,7 +1,5 @@
 
 import User from "../../../models/User"
-import UserFriend from "../../../models/UserFriend";
-import Group from "../../../models/Group";
 
 async function InitUser (request, response) {
   await User.deleteMany({})
@@ -15,7 +13,7 @@ async function InitUser (request, response) {
           name: `user${i + 1}`,
           email: `user${i + 1}@gmail.com`,
           password: "123456",
-          avatar: "/images/user-avatar.png"
+          avatar: `/images/user${i + 1}.jpg`
         })
         newUser.save(error => { 
           if(error) resolve(null)
@@ -51,28 +49,23 @@ async function GetUser(request, response) {
 
 async function InitUserFriend(request, response) {
   try {
-    await UserFriend.deleteMany({})
     const users = await User.find({})
 
-    for(let user of users) {
-      for(let u of users) {
-        if(u._id !== user._id) {
-          const newGroup = await new Group({
-            members: [u._id, user._id],
-            name: u.name + user.name
-          }).save()
-          
-          new UserFriend({
-            user: user._id,
-            friend: u._id,
-            group: newGroup._id
-          }).save()
+    for(let i = 0; i < users.length; i++) {
+      let friends = []
+
+      for(let j = 0; j < users.length; j++) {
+        if(users[i]._id !== users[j]._id) {
+          friends.push(users[j]._id)
         }
       }
+      users[i].friends = friends
+      users[i].save()
     }
 
     return response.status(200).json({ success: true })
   } catch(error) {
+    console.log(error)
     return response.status(500).json({ status: 500, message: "Oops! Something wrong!", error })
   }
 }

@@ -14,29 +14,14 @@ function makeGroup(members, name) {
 async function InitGroup(request, response) {
   try {
     await Group.deleteMany({})
-    const users = await User.find({})
-
-    let arrayPromise = []
+    const users = await User.find({}).sort({ name: 1 })
 
     for (let i = 0; i < users.length; i++) {
-      for (let j = 0; j < users.length; j++) {
-        if (j !== i) {
-          arrayPromise.push(
-            makeGroup([users[i]._id, users[j]._id], users[i].name + users[j].name)
-          )
-        }
+      for (let j = i + 1; j < users.length; j++) {
+        makeGroup([users[i]._id, users[j]._id], `Room ${users[i].name.substring(4)}${users[j].name.substring(4)}`)
       }
     }
 
-    Promise.all(arrayPromise)
-      .then(groups => {
-        let success = 0
-        for (let group of groups) {
-          if (group) success += 1
-        }
-
-        console.log("Init success ", success, " group")
-      })
     return response.status(200).json({ status: 200 })
   } catch (error) {
     return response.status(500).json({ status: 500, message: "Oops! Something wrong!", error })
@@ -141,7 +126,7 @@ async function CreateGroup(request, response) {
     await newMessage.save()
 
     newGroup.lastMessage = newMessage._id
-    newGroup.save()
+    await newGroup.save()
 
     const newGroupAfterSave = await Group.findById(newGroup._id).populate("members", "username name avatar")
 

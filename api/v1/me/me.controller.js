@@ -1,6 +1,5 @@
 import User from "../../../models/User";
 import TokenNotification from "../../../models/TokenNotification";
-import UserFriend from "../../../models/UserFriend";
 import mongoose from "mongoose"
 import Group from "../../../models/Group";
 import { SSL_OP_SSLEAY_080_CLIENT_DH_BUG } from "constants";
@@ -32,66 +31,29 @@ async function GetFriends(request, response) {
   }
 
   try {
-    const userFriends = await UserFriend
-      .aggregate(
-        [
-          { $match: { user: mongoose.Types.ObjectId(decoded._id) } },
-          {
-            $lookup: {
-              from: "users",
-              localField: "friend",
-              foreignField: "_id",
-              as: "friend"
-            }
+    const user = await User.findById(decoded._id)
+
+    let friends = await User.find({ _id: { $in: user.friends } }, "username name avatar online latestTimeConnection")
+      .skip(pageOptions.page * pageOptions.limit)
+      .limit(pageOptions.limit)
+      .sort(sort)
+      .lean()
+
+    for (let friend of friends) {
+      friend.group = await Group.findOne({
+        $and: [
+          { 
+            $or: [
+              { members: [user._id, friend._id] },
+              { members: [friend._id, user._id] }
+            ]
           },
-          { $unwind: "$friend" },
-          {
-            $project: {
-              _id: "$friend._id",
-              username: "$frined.username",
-              name: "$friend.name",
-              avatar: "$friend.avatar",
-              online: "$friend.online",
-              group: "$group",
-              latestTimeConnection: "$friend.latestTimeConnection"
-            }
-          },
-          { $match: filter },
-          { $sort: sort },
-          { $skip: pageOptions.page * pageOptions.limit },
-          { $limit: pageOptions.limit }
+          { members: { $size: 2 } }
         ]
-      )
-
-    // let arrayPromise = []
-    // if (userFriends) {
-    //   for (let i = 0; i < userFriends.length; i++) {
-    //     const userFriend = userFriends[i]
-    //     console.log(userFriend)
-
-    //     arrayPromise.push(
-    //       new Promise(async resolve => {
-    //         const group = await Group.findById(userFriend.group).populate("members", "username name avatar")
-    //         resolve(group)
-    //       })
-    //     )
-    //   }
-    // }
-
-    // await Promise.all(arrayPromise)
-    //   .then(groups => {
-    //     for (let i = 0; i < groups.length; i++) {
-    //       userFriends[i].group = groups[i]
-    //     }
-    //   })
-    
-    if(userFriends) {
-      for(let userFriend of userFriends) {
-        userFriend.group = await Group.findById(userFriend.group).populate("members", "username name avatar")
-      }
+      }).populate("members", "username name avatar")
     }
 
-    return response.status(200).json({ status: 200, friends: userFriends })    
+    return response.status(200).json({ status: 200, friends })
   } catch (error) {
     console.log(error)
     return response.status(500).json({ status: 500, message: "Oops! Something wrong!" })

@@ -73,7 +73,7 @@ function Message(props) {
 
   return (
     <div className={isMe(message.user._id) ? "item-message me" : "item-message"}>
-      {!isMe(message.user._id) && <img src={message.user.avatar} style={{ height: "30px", marginRight: "5px" }} />}
+      {!isMe(message.user._id) && <img src={message.user.avatar} style={{ height: "30px", width: "30px", marginRight: "5px" }} />}
       <div>
         {
           message.content

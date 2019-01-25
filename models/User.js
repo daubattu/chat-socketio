@@ -11,7 +11,10 @@ const UserSchema = new Schema({
   avatar: { type: String, default: "/images/user-avatar.png" },
   status: { type: Number, default: 1 },
   online: { type: Boolean, default: false },
-  latestTimeConnection: Number
+  latestTimeConnection: Number,
+  friends: [
+    { type: Schema.Types.ObjectId, ref: "User" }
+  ]
 })
 
 UserSchema.pre("save", function (next) {

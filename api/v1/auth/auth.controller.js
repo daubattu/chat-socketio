@@ -2,9 +2,7 @@ import jwt from "jsonwebtoken"
 import User from "../../../models/User"
 
 import { SECRET_KEY_JWT } from "../../../configs"
-// import { detectDevice } from "../../../middlewave"
-import TokenNotification from "../../../models/TokenNotification";
-import UserFriend from "../../../models/UserFriend"
+import TokenNotification from "../../../models/TokenNotification"
 
 async function Login(request, response) {
   try {
@@ -70,17 +68,15 @@ async function Logout(request, response) {
     console.log(numberOfSocket)
     
     if (numberOfSocket === 0) {
-      const userFriends = await UserFriend.find({ user: user._id }).populate("friend", "username avatar name")
+      const friends = await User.find({ _id: { $in: user.friends }, online: true }, "")
 
-      if (userFriends) {
-        for (let userFriend of userFriends) {
-          // Get total tokenNotifications of user frined
-          const tokenNotificationsOfFriends = await TokenNotification.find({ user: userFriend.friend._id })
-          for (let tokenNotificationsOfFriend of tokenNotificationsOfFriends) {
-            if (tokenNotificationsOfFriend.sockets) {
-              for (let socketOfFriend of tokenNotificationsOfFriend.sockets) {
-                io.to(socketOfFriend).emit("yourFriendOffline", { _id: user._id, name: user.name, username: user.username, avatar: user.avatar, latestTimeConnection: Date.now() })
-              }
+      for (let friend of friends) {
+        // Get total tokenNotifications of user frined
+        const tokenNotificationsOfFriends = await TokenNotification.find({ user: friend._id })
+        for (let tokenNotificationsOfFriend of tokenNotificationsOfFriends) {
+          if (tokenNotificationsOfFriend.sockets) {
+            for (let socketOfFriend of tokenNotificationsOfFriend.sockets) {
+              io.to(socketOfFriend).emit("yourFriendOffline", { _id: user._id, name: user.name, username: user.username, avatar: user.avatar, latestTimeConnection: Date.now() })
             }
           }
         }

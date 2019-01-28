@@ -108,7 +108,7 @@ class ChatContainer extends Component {
 
     socket.on("yourFriendOffline", data => {
       console.log("your friend have just disconnected", data)
-      this.props.updateFriend({ ...data, online: false })
+      this.props.updateFriend({ ...data, online: false, latestTimeConnection: Date.now() })
     })
 
     // Authenticate

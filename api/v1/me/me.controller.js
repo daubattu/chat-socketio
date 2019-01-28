@@ -40,17 +40,7 @@ async function GetFriends(request, response) {
       .lean()
 
     for (let friend of friends) {
-      friend.group = await Group.findOne({
-        $and: [
-          { 
-            $or: [
-              { members: [user._id, friend._id] },
-              { members: [friend._id, user._id] }
-            ]
-          },
-          { members: { $size: 2 } }
-        ]
-      }).populate("members", "username name avatar")
+      friend.group = await user.getGroupChatWithFriend(friend._id)
     }
 
     return response.status(200).json({ status: 200, friends })

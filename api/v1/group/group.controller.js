@@ -3,7 +3,7 @@ import User from "../../../models/User";
 import Message from "../../../models/Message";
 // import GroupUser from "../../../models/GroupUser"
 
-function makeGroup(members, name) {
+function MakeGroup(members, name) {
   return new Promise(async resolve => {
     let newGroup = await new Group({ members, name }).save()
     if (newGroup) resolve(newGroup)
@@ -18,7 +18,7 @@ async function InitGroup(request, response) {
 
     for (let i = 0; i < users.length; i++) {
       for (let j = i + 1; j < users.length; j++) {
-        makeGroup([users[i]._id, users[j]._id], `Room ${users[i].name.substring(4)}${users[j].name.substring(4)}`)
+        MakeGroup([users[i]._id, users[j]._id], `Room ${users[i].name.substring(4)}${users[j].name.substring(4)}`)
       }
     }
 
@@ -266,5 +266,6 @@ export {
   InitGroup,
   UpdateGroup,
   CreateGroup,
-  GroupMember
+  GroupMember,
+  MakeGroup
 }

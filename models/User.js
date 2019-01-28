@@ -1,5 +1,6 @@
 import mongoose from "mongoose"
 import bcrypt from "bcryptjs"
+import Group from "./Group"
 
 const Schema = mongoose.Schema
 
@@ -32,6 +33,26 @@ UserSchema.pre("save", function (next) {
 
 UserSchema.methods.comparePassword = function(password) {
   return bcrypt.compareSync(password, this.password)
+}
+
+UserSchema.methods.getGroupChatWithFriend = async function(friendID) {
+  try {
+    const group = await Group.findOne({
+      $and: [
+        {
+          $or: [
+            { members: [this._id, friendID] },
+            { members: [friendID, this._id] }
+          ]
+        },
+        { members: { $size: 2 } }
+      ]
+    }).populate("members", "username name avatar")
+
+    return group
+  } catch(error) {
+    return null
+  }
 }
 
 export default mongoose.model("User", UserSchema)

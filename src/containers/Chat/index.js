@@ -9,6 +9,7 @@ import { setCurrentGroup, addMembersGroup, deleteMemberOfGroup } from "../../act
 import { handleUpdateGroup } from "../../actions/groups"
 import { Modal } from "antd"
 import { updateFriend } from "../../actions/friends"
+import _ from "lodash"
 
 let socket
 
@@ -104,11 +105,34 @@ class ChatContainer extends Component {
 
     socket.on("yourFriendOnline", data => {
       console.log("your friend have just connected", data)
+
+      let groups = this.props.groups
+
+      for(let group of groups) {
+        let members = group.members
+        const indexOfMember = _.findIndex(members, m => m._id === data._id)
+
+        if(indexOfMember !== -1) {
+          members[indexOfMember].online = true
+          this.props.handleUpdateGroup(group)
+        }
+      }
       this.props.updateFriend({ ...data, online: true })
     })
 
     socket.on("yourFriendOffline", data => {
       console.log("your friend have just disconnected", data)
+      let groups = this.props.groups
+
+      for(let group of groups) {
+        let members = group.members
+        const indexOfMember = _.findIndex(members, m => m._id === data._id)
+
+        if(indexOfMember !== -1) {
+          members[indexOfMember].online = false
+          this.props.handleUpdateGroup(group)
+        }
+      }
       this.props.updateFriend({ ...data, online: false, latestTimeConnection: Date.now() })
     })
 

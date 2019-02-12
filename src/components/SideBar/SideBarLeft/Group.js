@@ -5,9 +5,10 @@ function customCreatedTime(createdTime) {
 }
 
 function customGroupAvatar(currentUser, members) {
-  let users = []
+  let users = [], online = false
   members = members.filter(member => {
     if(member._id !== currentUser._id && users.indexOf(member._id) === -1) {
+      if(member.online) online = true
       users.push(member._id)
       return members
     }
@@ -15,8 +16,20 @@ function customGroupAvatar(currentUser, members) {
 
   members = members.slice(0, 4)
 
+  const styleOfStatusGroup = { 
+    width: "10px",
+    position: "absolute",
+    bottom: 0,
+    transform: "translate(-50%, 50%)",
+    height: "10px",
+    border: "1px solid #fff",
+    borderRadius: "50%",
+    backgroundColor: online ? "green" : "red",
+  }
+
   return (
     <div className={"group-avatar group-avatar-" + (members.length < 4 ? members.length + 1 : "n")}>
+      <div style={ styleOfStatusGroup }></div>
       {
         members.map((member, index) => {
           return (

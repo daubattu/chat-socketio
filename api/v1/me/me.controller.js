@@ -1,8 +1,6 @@
 import User from "../../../models/User";
 import TokenNotification from "../../../models/TokenNotification";
-import mongoose from "mongoose"
-import Group from "../../../models/Group";
-import { SSL_OP_SSLEAY_080_CLIENT_DH_BUG } from "constants";
+import { GetNameOfPrivateGroup } from "../group/group.utils"
 
 async function GetFriends(request, response) {
   const { decoded } = request
@@ -41,6 +39,7 @@ async function GetFriends(request, response) {
 
     for (let friend of friends) {
       friend.group = await user.getGroupChatWithFriend(friend._id)
+      friend.group.name = GetNameOfPrivateGroup(decoded._id, friend.group)
     }
 
     return response.status(200).json({ status: 200, friends })
@@ -84,9 +83,9 @@ async function Update(request, response) {
       console.log("tokenNotification", tokenNotification)
     }
 
-    user.name = request.body.name
-    user.username = request.body.username
-    user.avatar = request.body.avatar
+    user.name = request.body.name || user.name
+    user.username = request.body.username || user.username
+    user.avatar = request.body.avatar || user.avatar
 
     await user.save()
 

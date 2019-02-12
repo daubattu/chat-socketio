@@ -2,6 +2,7 @@ import Group from "../../../models/Group"
 import User from "../../../models/User";
 import Message from "../../../models/Message";
 // import GroupUser from "../../../models/GroupUser"
+import { GetNameOfPrivateGroup } from "./group.utils"
 
 function MakeGroup(members, name) {
   return new Promise(async resolve => {
@@ -40,7 +41,8 @@ async function GetGroup(request, response) {
           path: "user",
           select: {
             username: 1,
-            avatar: 1
+            avatar: 1,
+            name: 1
           }
         }
       })
@@ -48,13 +50,16 @@ async function GetGroup(request, response) {
         path: "members",
         select: {
           username: 1,
-          avatar: 1
+          avatar: 1,
+          name: 1,
+          online: 1
         }
       })
       .sort({ updatedTime: -1 })
       .lean()
 
     for(let group of groups) {
+      group.name = GetNameOfPrivateGroup(decoded._id, group)
       group.numberOfMessagesUnReaded = await Message.count({ group: group._id, user: { $ne: decoded._id }, memberReaded: { $ne: decoded._id }})
     }
 

@@ -2,7 +2,7 @@ import React, { Fragment } from "react"
 import Messages from "./Messages";
 
 function Chat(props) {
-  const { group, actions, messages, message, isTyping, isMe, openExtendTypeMessage, isLatestMessage } = props
+  const { group, actions, messages, message, isTyping, isMe, openExtendTypeMessage, isLatestMessage, messageSelected } = props
 
   const isValid = message => {
     if (message.type === "text") {
@@ -70,7 +70,7 @@ function Chat(props) {
       }
       <div style={{ marginTop: "31px", display: "flex", flexDirection: "column", justifyContent: "space-between", height: "100%" }}>
         <div id="wrapper-messages" style={{ flexGrow: "1", overflow: "auto", height: "100vh" }}>
-          <Messages numberOfMember={group.members ? group.members.length : 0} isLatestMessage={isLatestMessage} isMe={isMe} messages={messages} />
+          <Messages setMessageSelected={actions.setMessageSelected}  messageSelected={messageSelected} numberOfMember={group.members ? group.members.length : 0} isLatestMessage={isLatestMessage} isMe={isMe} messages={messages} />
         </div>
 
         <div>

@@ -65,20 +65,23 @@ async function Update(request, response) {
     }
 
     if (request.body.tokenNotification) {
+      console.log("NHKKKKKKKKKKKKKKKKK")
       let tokenNotification = await TokenNotification.findById(decoded.tokenNotification)
       if (!tokenNotification) {
         return response.status(404).json({ status: 404, message: "Token notification không tồn tại" })
       }
 
-      if (tokenNotification.user !== decoded._id) {
+      if (tokenNotification.user.toString() !== decoded._id.toString()) {
         return response.status(403).json({ status: 403, message: "Bạn không có quyền thay đổi thông tin user này" })
       }
 
-      tokenNotification = request.body.tokenNotification
+      tokenNotification.value = request.body.tokenNotification
 
       await tokenNotification.save(error => {
         if (error) return response.status(500).json({ status: 500, message: "Oops! Something wrong!", error })
       })
+
+      console.log("tokenNotification", tokenNotification)
     }
 
     user.name = request.body.name

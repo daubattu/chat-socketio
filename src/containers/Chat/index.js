@@ -6,7 +6,7 @@ import ModalMemberOfGroup from "./Modals/MemberOfGroup"
 import axios from "axios";
 import { handleLogOut } from "../../actions/auth"
 import { setCurrentGroup, addMembersGroup, deleteMemberOfGroup } from "../../actions/group"
-import { handleUpdateGroup, handleUpdateGroupById } from "../../actions/groups"
+import { handleUpdateGroup } from "../../actions/groups"
 import { Modal } from "antd"
 import { updateFriend } from "../../actions/friends"
 
@@ -17,6 +17,7 @@ const confirm = Modal.confirm
 class ChatContainer extends Component {
   state = {
     messages: [],
+    messageSelected: null,
     message: {
       type: "text",
       content: null,
@@ -211,6 +212,9 @@ class ChatContainer extends Component {
   }
 
   actions = {
+    setMessageSelected: messageSelected => {
+      this.setState({ messageSelected })
+    },
     confirmDeleteMember: deleteMember => {
       let _this = this
       const { group } = this.props
@@ -427,11 +431,11 @@ class ChatContainer extends Component {
 
   render() {
     const { group } = this.props
-    const { openModal, loading, newMemberIds, messages, message, isTyping, openExtendTypeMessage } = this.state
+    const { openModal, loading, newMemberIds, messages, message, isTyping, openExtendTypeMessage, messageSelected } = this.state
 
     return (
       <main role="main" className="col-md-7 ml-sm-auto pt-3 px-4 border-right" style={{ height: "calc(100vh - 48px)" }}>
-        <Chat isLatestMessage={this.isLatestMessage} message={message} openExtendTypeMessage={openExtendTypeMessage} isMe={this.isMe} isTyping={isTyping} group={group} actions={this.actions} messages={messages} />
+        <Chat messageSelected={messageSelected} isLatestMessage={this.isLatestMessage} message={message} openExtendTypeMessage={openExtendTypeMessage} isMe={this.isMe} isTyping={isTyping} group={group} actions={this.actions} messages={messages} />
         <ModalMemberOfGroup
           group={group}
           actions={this.actions}

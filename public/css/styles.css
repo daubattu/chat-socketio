@@ -395,3 +395,11 @@ body {
 .item-list-friends:hover {
   background: #eee;
 }
+
+#icon-show-more-message {
+  opacity: 0;
+  transition: opacity .15s linear;
+}
+#icon-show-more-message:hover {
+  opacity: 1;
+}

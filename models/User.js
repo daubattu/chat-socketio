@@ -5,8 +5,8 @@ import Group from "./Group"
 const Schema = mongoose.Schema
 
 const UserSchema = new Schema({
-  username: { type: String, unique: true, required: true },
-  email: { type: String, unique: true, required: true },
+  username: { type: String, unique: true },
+  email: { type: String, unique: true },
   password: { type: String, default: "123456" },
   name: String,
   avatar: { type: String, default: "/images/user-avatar.png" },

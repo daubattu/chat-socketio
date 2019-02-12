@@ -1,12 +1,12 @@
 import React, { Fragment } from "react"
-import { Tooltip } from "antd"
+import { Tooltip, Icon } from "antd"
 
 function customCreatedTime(createdTime) {
   return `${new Date(createdTime).toLocaleTimeString()} - ${new Date(createdTime).toLocaleDateString()}`
 }
 
 function displayMessageAttachment(type, files) {
-  if(type === "image") {
+  if (type === "image") {
     return (
       <Fragment>
         {
@@ -43,33 +43,33 @@ function displayMessageAttachment(type, files) {
       </Fragment>
     )
   }
-} 
+}
 
 function displayMemberReaded(message, isMe, numberOfMember, isMeFunc) {
   let readedByText = ""
-  if(message.memberReaded) {
-    for(let memberReaded of message.memberReaded) {
-      if((memberReaded._id !== message.user._id) && !isMeFunc(memberReaded._id)) {
+  if (message.memberReaded) {
+    for (let memberReaded of message.memberReaded) {
+      if ((memberReaded._id !== message.user._id) && !isMeFunc(memberReaded._id)) {
         readedByText += readedByText === "" ? memberReaded.name : `, ${memberReaded.name}`
       }
     }
 
-    if(readedByText === "") return null
+    if (readedByText === "") return null
 
-    if(numberOfMember === 2) {
-      if(isMe) {
+    if (numberOfMember === 2) {
+      if (isMe) {
         return <small><i style={{ color: "green" }} className="fa fa-check-circle-o" aria-hidden="true"></i> Đã xem</small>
       } else {
         return null
       }
     } else {
-      return <small><i style={{ color: "green" }} className="fa fa-check-circle-o" aria-hidden="true"></i> { readedByText } đã xem</small>
+      return <small><i style={{ color: "green" }} className="fa fa-check-circle-o" aria-hidden="true"></i> {readedByText} đã xem</small>
     }
   } else return null
 }
 
 function Message(props) {
-  const { message, isMe, isLatestMessage, numberOfMember } = props
+  const { message, isMe, isLatestMessage, numberOfMember, messageSelected, setMessageSelected } = props
 
   return (
     <div className={isMe(message.user._id) ? "item-message me" : "item-message"}>
@@ -78,23 +78,35 @@ function Message(props) {
         {
           message.content
           &&
-          <Tooltip placement={ isMe(message.user._id) ? "left" : "right" } title={customCreatedTime(message.createdTime)}>
-            <span className={ message.error ? "item-message-content error" : "item-message-content" }>
-              { message.content } 
-            </span> 
-          </Tooltip>
+          <Fragment>
+            {/* {
+              messageSelected && messageSelected._id === message._id
+                ? <span style={{ marginRight: "5px", backgroundColor: "#ccc", borderRadius: "3px", padding: "5px 10px" }}>
+                    <i onClick={() => setMessageSelected(null)} style={{ cursor: "pointer" }} className="fa fa-chevron-right" aria-hidden="true"></i>
+                    <Icon style={{ margin: "0 8px", cursor: "pointer" }} type="edit" />
+                    <Icon style={{ cursor: "pointer" }} type="delete" />
+                  </span>
+                : null
+            }
+            {isMe(message.user._id) && !(messageSelected && messageSelected._id === message._id) ? <i id="icon-show-more-message" onClick={() => setMessageSelected(message)} style={{ marginRight: "5px", cursor: "pointer", color: "#ccc" }} className="fa fa-chevron-left" aria-hidden="true"></i> : null} */}
+            <Tooltip placement={isMe(message.user._id) ? "left" : "right"} title={customCreatedTime(message.createdTime)}>
+              <span className={message.error ? "item-message-content error" : "item-message-content"}>
+                {message.content}
+              </span>
+            </Tooltip>
+          </Fragment>
         }
         {
           message.files && message.files.length !== 0
-          ? <Tooltip placement={ isMe(message.user._id) ? "left" : "right" } title={customCreatedTime(message.createdTime)}>
+            ? <Tooltip placement={isMe(message.user._id) ? "left" : "right"} title={customCreatedTime(message.createdTime)}>
               <div className="message-attachments">
-                { displayMessageAttachment(message.type, message.files) }
+                {displayMessageAttachment(message.type, message.files)}
               </div>
             </Tooltip>
-          : null
+            : null
         }
         <div className="member-readed-message">
-          { isLatestMessage(message._id) && displayMemberReaded(message, isMe(message.user._id), numberOfMember, isMe) }
+          {isLatestMessage(message._id) && displayMemberReaded(message, isMe(message.user._id), numberOfMember, isMe)}
         </div>
         {/* { !message.error && <small className="item-message-created-time">{customCreatedTime(message.createdTime)}</small> } */}
       </div>

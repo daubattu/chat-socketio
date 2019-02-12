@@ -16,7 +16,8 @@ async function Login(request, response) {
         let newTokenNotification = new TokenNotification({
           user: user._id,
           device: request.headers["user-agent"],
-          sockets: []
+          sockets: [],
+          value: request.body.tokenNotification || null
         })
 
         await newTokenNotification.save()

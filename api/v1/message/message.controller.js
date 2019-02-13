@@ -123,18 +123,21 @@ async function PostMessage(request, response) {
           path: "lastMessage members"
         }
       })
+      .lean()
 
     let groupName
 
     if(group.members.length === 2) {
       for(let member of group.members) {
-        if(member._id !== decoded._id) {
+        if(member._id.toString() !== decoded._id) {
           groupName = member.name || member.username
         }
       }
     } else {
       groupName = group.name
     }
+
+    message.group.name = groupName
 
     for (let member of group.members) {
       const tokenNotifications = await TokenNotification.find({ user: member._id })

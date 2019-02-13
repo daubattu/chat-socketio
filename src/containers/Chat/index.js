@@ -50,8 +50,6 @@ class ChatContainer extends Component {
   }
 
   async GetMessage(group, page = 0) {
-    const wrapperMessages = document.getElementById("wrapper-messages")
-    const oldHeightOfScroll = wrapperMessages.scrollHeight
     let loading = { ...this.state.loading }
 
     await axios.get("/api/v1/messages", {
@@ -72,10 +70,6 @@ class ChatContainer extends Component {
 
     loading.loadMoreMessage = false
     this.setState({ loading })
-
-    const newHeightOfScroll = wrapperMessages.scrollHeight
-
-    wrapperMessages.scrollTop = newHeightOfScroll - oldHeightOfScroll
   }
 
   handleScroll = () => {
@@ -87,14 +81,22 @@ class ChatContainer extends Component {
       loading.loadMoreMessage = true
       this.setState({ loading })
 
-      setTimeout(() => {
-        this.GetMessage(this.props.group._id, page)
+      setTimeout(async () => {
+        const wrapperMessages = document.getElementById("wrapper-messages")
+        const oldHeightOfScroll = wrapperMessages.scrollHeight
+
+        await this.GetMessage(this.props.group._id, page)
+
+        const newHeightOfScroll = wrapperMessages.scrollHeight
+        wrapperMessages.scrollTop = newHeightOfScroll - oldHeightOfScroll
       }, 1000)
     }
   }
 
   componentWillMount() {
     socket = socketIOClient("http://chatapp.stovietnam.com")
+    // socketIOClient("localhost:3000")
+    // socketIOClient("http://chatapp.stovietnam.com")
 
     socket.on("newConnection", data => {
       console.log(data)

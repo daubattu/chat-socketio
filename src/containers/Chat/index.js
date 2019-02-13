@@ -29,34 +29,68 @@ class ChatContainer extends Component {
     },
     loading: {
       addNewMember: false,
-      deleteMember: false
+      deleteMember: false,
+      loadMoreMessage: false
     },
     newMemberIds: [],
     socket: null,
     isTyping: false,
     openExtendTypeMessage: false,
-    deleteMemberId: null
+    deleteMemberId: null,
+    page: 0,
+    numberOfPage: 0
   }
 
   scrollToBottomOfWrapperMessages() {
-    const wrapperMessages = document.getElementById("wrapper-messages")
+    let wrapperMessages = document.getElementById("wrapper-messages")
     if (wrapperMessages) {
       wrapperMessages.scrollTop = wrapperMessages.scrollHeight
+      console.log("wrapperMessages.scrollTop, wrapperMessages.scrollHeight", wrapperMessages.scrollTop, wrapperMessages.scrollHeight)
     }
   }
 
-  async GetMessage(group) {
-    this.setState({ messages: null })
+  async GetMessage(group, page = 0) {
+    const wrapperMessages = document.getElementById("wrapper-messages")
+    const oldHeightOfScroll = wrapperMessages.scrollHeight
+    let loading = { ...this.state.loading }
+
     await axios.get("/api/v1/messages", {
-      params: { group }
+      params: { group, page }
     }).then(response => {
-      const messages = response.data.messages || []
-      this.setState({ messages })
-      this.scrollToBottomOfWrapperMessages()
-    }, error => {
+      let messages = response.data.messages || []
+      if(page !== 0) {
+        messages = [...messages, ...this.state.messages]
+        this.setState({ messages, page })
+      } else {
+        let numberOfPage = response.data.numberOfPage
+        this.setState({ messages, numberOfPage, page })
+        this.scrollToBottomOfWrapperMessages()
+      }
+    }, () => {
       this.setState({ messages: [] })
-      console.log(error.response.data)
     })
+
+    loading.loadMoreMessage = false
+    this.setState({ loading })
+
+    const newHeightOfScroll = wrapperMessages.scrollHeight
+
+    wrapperMessages.scrollTop = newHeightOfScroll - oldHeightOfScroll
+  }
+
+  handleScroll = () => {
+    const wrapperMessages = document.getElementById("wrapper-messages")
+    const page = this.state.page + 1, numberOfPage = this.state.numberOfPage
+
+    if(wrapperMessages.scrollTop === 0 && page < numberOfPage) {
+      let loading = { ...this.state.loading }
+      loading.loadMoreMessage = true
+      this.setState({ loading })
+
+      setTimeout(() => {
+        this.GetMessage(this.props.group._id, page)
+      }, 1000)
+    }
   }
 
   componentWillMount() {
@@ -182,7 +216,11 @@ class ChatContainer extends Component {
         let { messages } = this.state
         messages.push(data)
         this.setState({ messages })
-        this.scrollToBottomOfWrapperMessages()
+        
+        let wrapperMessages = document.getElementById("wrapper-messages")
+        if (wrapperMessages && (wrapperMessages.scrollTop === wrapperMessages.scrollHeight)) {
+          this.scrollToBottomOfWrapperMessages()         
+        }
         this.props.handleUpdateGroup(groupUpdate)
       } else {
         if (this.props.currentUser._id !== data.user._id) {
@@ -209,6 +247,7 @@ class ChatContainer extends Component {
   componentWillReceiveProps(nextProps) {
     if (nextProps.group._id) {
       if (nextProps.group._id !== this.props.group._id) {
+        this.setState({ messages: null, page: 0 })
         this.GetMessage(nextProps.group._id)
         socket.emit("joinRoom", { groupId: nextProps.group._id })
         // Reset numberOfMessagesUnReaded in sidebarleft become 0
@@ -459,7 +498,19 @@ class ChatContainer extends Component {
 
     return (
       <main role="main" className="col-md-7 ml-sm-auto pt-3 px-4 border-right" style={{ height: "calc(100vh - 48px)" }}>
-        <Chat messageSelected={messageSelected} isLatestMessage={this.isLatestMessage} message={message} openExtendTypeMessage={openExtendTypeMessage} isMe={this.isMe} isTyping={isTyping} group={group} actions={this.actions} messages={messages} />
+        <Chat 
+          isLoadingLoadMoreMessage={loading.loadMoreMessage}
+          handleScroll={this.handleScroll}
+          messageSelected={messageSelected} 
+          isLatestMessage={this.isLatestMessage} 
+          message={message} 
+          openExtendTypeMessage={openExtendTypeMessage} 
+          isMe={this.isMe} 
+          isTyping={isTyping} 
+          group={group} 
+          actions={this.actions} 
+          messages={messages} 
+        />
         <ModalMemberOfGroup
           group={group}
           actions={this.actions}

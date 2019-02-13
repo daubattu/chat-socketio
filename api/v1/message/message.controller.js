@@ -8,12 +8,22 @@ String.prototype.replaceAll = function (search, replacement) {
   return target.split(search).join(replacement);
 }
 
+function isInt(number) {
+  if (parseFloat(number).toString().includes(".")) return false
+  return true
+}
+
 const formatFileSize = size => {
   var i = Math.floor( Math.log(size) / Math.log(1024) )
   return ( size / Math.pow(1024, i) ).toFixed(2) * 1 + ' ' + ['B', 'kB', 'MB', 'GB', 'TB'][i]
 }
 
 async function GetMessage(request, response) {
+  const pageOptions = {
+    page: parseInt(request.query.page) * 0 === 0 ? parseInt(request.query.page) : 0,
+    limit: parseInt(request.query.limit) * 0 === 0 ? parseInt(request.query.limit) : 25
+  }
+
   const props = ["group"]
 
   let query = {}
@@ -24,9 +34,20 @@ async function GetMessage(request, response) {
     }
   }
 
-  const messages = await Message.find(query).populate("user").populate("memberReaded", "username name avatar").limit(100).sort({ createdTime: -1 })
+  const totalOfMessages = await Message.countDocuments(query)
 
-  return response.status(200).json({ status: 200, messages: messages.reverse() })
+  const messages = await Message.find(query)
+    .populate("user", "username name avatar")
+    .populate("memberReaded", "username name avatar")
+    .skip(pageOptions.page * pageOptions.limit)
+    .limit(pageOptions.limit)
+    .sort({ createdTime: -1 })
+
+  return response.status(200).json({ 
+    status: 200, 
+    messages: messages.reverse(),
+    numberOfPage: isInt(totalOfMessages / pageOptions.limit) ? (totalOfMessages / pageOptions.limit) : (parseInt(totalOfMessages / pageOptions.limit) + 1)
+  })
 }
 
 async function PostMessage(request, response) {

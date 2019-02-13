@@ -2,7 +2,7 @@ import React, { Fragment } from "react"
 import Messages from "./Messages";
 
 function Chat(props) {
-  const { group, actions, messages, message, isTyping, isMe, openExtendTypeMessage, isLatestMessage, messageSelected } = props
+  const { group, actions, messages, message, isTyping, isMe, openExtendTypeMessage, isLatestMessage, messageSelected, handleScroll, isLoadingLoadMoreMessage } = props
 
   const isValid = message => {
     if (message.type === "text") {
@@ -62,14 +62,23 @@ function Chat(props) {
         group._id
         &&
         <div style={{ position: "relative", width: "100%" }}>
-          <div className="info-group" style={{ width: "100%", background: "#eee", position: "absolute", padding: "5px 10px", borderRadius: "3px" }}>
-            <b>{group.name}</b>
-            <small onClick={() => actions.handleChangeStatusModal("listMembers")} style={{ cursor: "pointer" }}> {group.members.length} thành viên</small>
+          <div className="info-group" style={{ width: "100%", background: "#eee", position: "absolute", display: "flex", justifyContent: "space-between", padding: "5px 10px", borderRadius: "3px" }}>
+            <span>
+              <b>{group.name}</b>
+              <small onClick={() => actions.handleChangeStatusModal("listMembers")} style={{ cursor: "pointer" }}> {group.members.length} thành viên</small>
+            </span>
+            {
+              isLoadingLoadMoreMessage
+              &&
+              <span>
+                <img src="/images/loading.gif" style={{ height: "15px" }} />
+              </span>
+            }
           </div>
         </div>
       }
       <div style={{ marginTop: "31px", display: "flex", flexDirection: "column", justifyContent: "space-between", height: "100%" }}>
-        <div id="wrapper-messages" style={{ flexGrow: "1", overflow: "auto", height: "100vh" }}>
+        <div id="wrapper-messages" onScroll={handleScroll} style={{ flexGrow: "1", overflow: "auto", height: "100vh" }}>
           <Messages setMessageSelected={actions.setMessageSelected}  messageSelected={messageSelected} numberOfMember={group.members ? group.members.length : 0} isLatestMessage={isLatestMessage} isMe={isMe} messages={messages} />
         </div>
 

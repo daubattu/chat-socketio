@@ -21,6 +21,8 @@ export default (state = [], action) => {
           stateTemp[indexOfGroup] = action.group
           state = [...stateTemp]
         }
+      } else {
+        state = [action.group, ...state]
       }
       break
     case "GROUPS_UPDATE_GROUP_BY_ID":

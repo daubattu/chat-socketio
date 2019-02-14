@@ -14,8 +14,8 @@ function isInt(number) {
 }
 
 const formatFileSize = size => {
-  var i = Math.floor( Math.log(size) / Math.log(1024) )
-  return ( size / Math.pow(1024, i) ).toFixed(2) * 1 + ' ' + ['B', 'kB', 'MB', 'GB', 'TB'][i]
+  var i = Math.floor(Math.log(size) / Math.log(1024))
+  return (size / Math.pow(1024, i)).toFixed(2) * 1 + ' ' + ['B', 'kB', 'MB', 'GB', 'TB'][i]
 }
 
 async function GetMessage(request, response) {
@@ -43,8 +43,8 @@ async function GetMessage(request, response) {
     .limit(pageOptions.limit)
     .sort({ createdTime: -1 })
 
-  return response.status(200).json({ 
-    status: 200, 
+  return response.status(200).json({
+    status: 200,
     messages: messages.reverse(),
     numberOfPage: isInt(totalOfMessages / pageOptions.limit) ? (totalOfMessages / pageOptions.limit) : (parseInt(totalOfMessages / pageOptions.limit) + 1)
   })
@@ -61,7 +61,7 @@ async function PostMessage(request, response) {
       }
 
       if (prop === "type") {
-        if(!["text", "image", "video", "file"].includes(request.body[prop])) {
+        if (!["text", "image", "video", "file"].includes(request.body[prop])) {
           return response.status(400).json({ status: 400, message: "Hiện tại hệ thống chưa hỗ trợ kiểu tin nhắn " + request.body[prop] })
         } else {
           if (request.body[prop] === "text") {
@@ -125,53 +125,66 @@ async function PostMessage(request, response) {
       })
       .lean()
 
-    let groupName
+    const computeNameOfGroup = (member) => {
+      let groupName
 
-    if(group.members.length === 2) {
-      groupName = decoded.name
-    } else {
-      groupName = group.name
+      console.log(member._id.toString(), decoded._id)
+        if(member._id.toString() === decoded._id) {
+          for(let memberOfGroup of group.members) {
+            if(member._id !== memberOfGroup._id) {
+              groupName = memberOfGroup.name
+            }
+          }
+        } else {
+          groupName = decoded.name
+        }
+
+      return groupName
     }
 
-    newMessage.group.name = groupName
-    message.group.name = groupName
-
     for (let member of group.members) {
+
+      if(group.members.length === 2) {
+        message.group.name = computeNameOfGroup(member)
+      }
+
+      console.log("message.group.name", message.group.name)
+
       const tokenNotifications = await TokenNotification.find({ user: member._id })
 
-      for(let tokenNotification of tokenNotifications) {
+      for (let tokenNotification of tokenNotifications) {
         const sockets = tokenNotification.sockets || []
 
-        if(sockets.length === 0) {
+        if (sockets.length === 0) {
           // push notification to this token notification
           // check không push notification đến chính mình mắc dù chính mình thì sockets.length !== 0 rồi nhưng em vẫn check
-          if(decoded._id !== member._id) {
+          if (decoded._id !== member._id) {
             let messageOfNotification
 
-            if(newMessage.type === "text") {
+            if (newMessage.type === "text") {
               messageOfNotification = newMessage.content
-            } else if(newMessage.type === "image") {
+            } else if (newMessage.type === "image") {
               messageOfNotification = "Đã gửi " + newMessage.files.length + " bức ảnh"
-            } else if(newMessage.type === "video") {
+            } else if (newMessage.type === "video") {
               messageOfNotification = "Đã gửi 1 video"
             } else { // Chắc chắn else là file vì đã check ở trên 
               messageOfNotification = "Đã gửi 1 file đính kèm"
             }
 
-            if(group.members.length === 2) {
+            if (group.members.length === 2) {
               messageOfNotification = messageOfNotification.replace("Đã gửi", "Đã gửi cho bạn")
             } else {
               messageOfNotification = (member.name ? member.name : member.username) + " " + messageOfNotification
               messageOfNotification = messageOfNotification.replace("Đã gửi", "đã gửi tới nhóm")
             }
 
-            const titleOfNotification = "Có tin nhắn mới từ " + groupName
+            const titleOfNotification = "Có tin nhắn mới từ " + message.group.name
 
             pushNotificationToIOS(tokenNotification.value, titleOfNotification, messageOfNotification, member._id, group._id)
-            console.log("Push notification to ", tokenNotification)
+            // console.log("Push notification to ", tokenNotification)
           }
         } else {
-          for(let socket of sockets) {
+          for (let socket of sockets) {
             io.to(socket).emit("receiveNewMessage", message)
           }
         }

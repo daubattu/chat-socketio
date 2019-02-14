@@ -178,7 +178,7 @@ function GroupMember() {
     get: async (request, response) => {
       const { groupId } = request.params
 
-      const group = await Group.findById(groupId).populate("members", "username avatar")
+      const group = await Group.findById(groupId).populate("members", "username avatar name")
 
       return response.status(200).json({ status: 200, members: group.members })
     },
@@ -233,8 +233,8 @@ function GroupMember() {
           group.updatedTime = Date.now()
           group.save()
 
-          // lấy trưởng avatar, username cho member vừa add
-          const newMembers = await User.find({ _id: { $in: newMembersValid } }, "username avatar")
+          // lấy trưởng avatar, username, name cho member vừa add
+          const newMembers = await User.find({ _id: { $in: newMembersValid } }, "username avatar name online")
 
           if (newMembersInValid.length !== 0) {
             return response.status(200).json({ status: 200, message: "Thêm thành công " + newMembersValid.length + "/" + newMemberIds.length, newMembers, newMembersInValid })

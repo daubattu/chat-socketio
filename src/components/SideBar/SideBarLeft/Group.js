@@ -20,6 +20,7 @@ function customGroupAvatar(currentUser, members) {
     width: "10px",
     position: "absolute",
     bottom: 0,
+    zIndex: 1,
     transform: "translate(-50%, 50%)",
     height: "10px",
     border: "1px solid #fff",

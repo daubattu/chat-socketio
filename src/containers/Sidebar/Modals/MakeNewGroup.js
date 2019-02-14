@@ -13,7 +13,7 @@ function MakeNewGroup(props) {
         onCancel={() => actions.handleChangeStatusModal("makeNewGroup")}
         footer={[
           <Button key="back" onClick={() => actions.handleChangeStatusModal("makeNewGroup")}>Hủy</Button>,
-          <Button key="submit" type="primary" disabled={!(newGroup.name && newGroup.members && newGroup.members.length > 1)} loading={isLoading} onClick={actions.handleMakeNewGroup}>Tạo</Button>
+          <Button key="submit" type="primary" disabled={!(newGroup.members && newGroup.members.length > 1)} loading={isLoading} onClick={actions.handleMakeNewGroup}>Tạo</Button>
         ]}>
         <div className="modal-make-new-group">
           <div className="row modal-make-new-group-head">

@@ -5,7 +5,7 @@ function SideBarRight(props) {
   const { friends, setCurrentGroup } = props
   
   return (
-    <div className="col-md-2">
+    <div className="col-md-3">
       <div className="pt-3">
         <h2>Online</h2>
       </div>

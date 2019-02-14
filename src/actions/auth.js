@@ -11,7 +11,8 @@ export function setCurrentUser(tokenJWT) {
           user = {
             _id: decoded._id,
             username: decoded.username,
-            avatar: decoded.avatar
+            avatar: decoded.avatar,
+            name: decoded.name
           }
         }
       }

@@ -7,7 +7,7 @@ function Friend(props) {
     <div className="item-friend-in-modal-make-new-group" style={{ marginBottom: "5px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
       <div onClick={() => actions.handleChangeNewGroup("members", friend._id, friend)} style={{ flexGrow: "1" }}>
         <img src={friend.avatar} style={{ height: "40px", width: "40px", marginRight: "5px" }} />
-        <b>{friend.name || friend.username}</b>
+        <b>{friend.name}</b>
       </div>
       <div>
         {

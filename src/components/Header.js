@@ -10,7 +10,7 @@ function Header(props) {
       <ul className="navbar-nav ml-auto px-3" style={{ display: "flex", flexDirection: "row" }}>
         <li className="nav-item" style={{ marginRight: "15px" }}>
           <span className="nav-link">
-            <img src={ user.avatar } style={{ height: "20px", marginRight: "5px" }} /> { user.username }
+            <img src={ user.avatar } style={{ height: "20px" }} /> { user.name }
           </span>
         </li>
         <li className="nav-item text-nowrap">

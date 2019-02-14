@@ -34,7 +34,7 @@ async function Login(request, response) {
           tokenNotification: newTokenNotification._id
         }, SECRET_KEY_JWT)
 
-        return response.status(200).json({ status: 200, tokenJWT, user: { _id: user._id, username: user.username, avatar: user.avatar } })
+        return response.status(200).json({ status: 200, tokenJWT, user: { _id: user._id, username: user.username, avatar: user.avatar, name: user.name } })
       } else {
         return response.status(400).json({ status: 400, message: "Mật khẩu không chính xác" })
       }

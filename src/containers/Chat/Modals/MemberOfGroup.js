@@ -4,6 +4,20 @@ import { Modal, Button, Icon } from "antd"
 function MemberOfGroup(props) {
   const { group, visible, actions, isLoading, newMemberIds } = props
 
+  const styleOfStatusGroup = online => { 
+    return {
+      width: "7px",
+      position: "absolute",
+      bottom: 0,
+      zIndex: 1,
+      transform: "translate(-50%, 50%)",
+      height: "7px",
+      border: "1px solid #fff",
+      borderRadius: "50%",
+      backgroundColor: online ? "green" : "red",
+    }
+  }
+      
   return (
     <Modal
       title={`Thành viên nhóm ${group._id && group.name}`}
@@ -22,8 +36,11 @@ function MemberOfGroup(props) {
               return (
                 <div className="item-member-of-modal-members-group" onClick={() => actions.confirmDeleteMember(member)} key={member._id || index} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "5px" }}>
                   <div>
-                    <img src={member.avatar} style={{ width: "30px", height: "30px", marginRight: "5px" }} />
-                    <b>{member.username}</b>
+                    <div style={{ position: "relative", display: "inline-block" }}>
+                      <img src={member.avatar} style={{ width: "30px", height: "30px", marginRight: "5px" }} />
+                      <div style={ styleOfStatusGroup(member.online) }></div>
+                    </div>
+                    <b>{member.name}</b>
                   </div>
                   <Icon type="delete" />
                 </div>

@@ -71,16 +71,21 @@ class SideBarLeftContainer extends Component {
 
       await axios.post("/api/v1/groups", newGroup)
         .then(response => {
+          console.log(response.data)
           openModal.makeNewGroup = false
           let group = response.data.newGroup
           group.lastMessage = {
             user: this.props.currentUser,
             createdTime: Date.now(),
             type: "text",
-            content: "Đã tạo nhóm"
+            content: "Đã tạo nhóm",
+            memberReaded: []
           }
-          this.pushNotifycation("success", "Thêm nhóm " + newGroup.name + " thành công")
-          this.props.handleAddNewGroup(group)          
+          if(!response.data.isExist) {
+            this.props.handleAddNewGroup(group)  
+            this.pushNotifycation("success", "Thêm nhóm " + newGroup.name + " thành công")
+          }
+          this.props.setCurrentGroup(group)
         }, error => {
           let message = "Thêm nhóm " + newGroup.name + " không thành công"
           if(error.response.data.message) {

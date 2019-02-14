@@ -65,7 +65,7 @@ class ChatContainer extends Component {
         this.scrollToBottomOfWrapperMessages()
       }
     }, () => {
-      this.setState({ messages: [] })
+      this.setState({ messages: this.state.messages || [] })
     })
 
     loading.loadMoreMessage = false
@@ -75,14 +75,15 @@ class ChatContainer extends Component {
   handleScroll = () => {
     const wrapperMessages = document.getElementById("wrapper-messages")
     const page = this.state.page + 1, numberOfPage = this.state.numberOfPage
+    console.log("handleScroll", wrapperMessages)
 
     if(wrapperMessages.scrollTop === 0 && page < numberOfPage) {
+      console.log("load more message", page)
       let loading = { ...this.state.loading }
       loading.loadMoreMessage = true
       this.setState({ loading })
 
       setTimeout(async () => {
-        const wrapperMessages = document.getElementById("wrapper-messages")
         const oldHeightOfScroll = wrapperMessages.scrollHeight
 
         await this.GetMessage(this.props.group._id, page)
@@ -150,7 +151,7 @@ class ChatContainer extends Component {
 
         if(indexOfMember !== -1) {
           members[indexOfMember].online = true
-          this.props.handleUpdateGroup(group)
+          this.props.handleUpdateGroup(group, false)
         }
       }
       this.props.updateFriend({ ...data, online: true })
@@ -166,7 +167,7 @@ class ChatContainer extends Component {
 
         if(indexOfMember !== -1) {
           members[indexOfMember].online = false
-          this.props.handleUpdateGroup(group)
+          this.props.handleUpdateGroup(group, false)
         }
       }
       this.props.updateFriend({ ...data, online: false, latestTimeConnection: Date.now() })
@@ -249,7 +250,7 @@ class ChatContainer extends Component {
   componentWillReceiveProps(nextProps) {
     if (nextProps.group._id) {
       if (nextProps.group._id !== this.props.group._id) {
-        this.setState({ messages: null, page: 0 })
+        this.setState({ messages: null, page: 0, numberOfPage: 0 })
         this.GetMessage(nextProps.group._id)
         socket.emit("joinRoom", { groupId: nextProps.group._id })
         // Reset numberOfMessagesUnReaded in sidebarleft become 0
@@ -499,7 +500,7 @@ class ChatContainer extends Component {
     const { openModal, loading, newMemberIds, messages, message, isTyping, openExtendTypeMessage, messageSelected } = this.state
 
     return (
-      <main role="main" className="col-md-7 ml-sm-auto pt-3 px-4 border-right" style={{ height: "calc(100vh - 48px)" }}>
+      <main role="main" className="col-md-6 ml-sm-auto pt-3 px-4 border-right" style={{ height: "calc(100vh - 48px)" }}>
         <Chat 
           isLoadingLoadMoreMessage={loading.loadMoreMessage}
           handleScroll={this.handleScroll}

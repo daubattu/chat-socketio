@@ -2,7 +2,7 @@ import Group from "../../../models/Group"
 import User from "../../../models/User";
 import Message from "../../../models/Message";
 // import GroupUser from "../../../models/GroupUser"
-import { GetNameOfPrivateGroup } from "./group.utils"
+import { GetNameOfPrivateGroup, ExistGroup } from "./group.utils"
 
 function MakeGroup(members, name) {
   return new Promise(async resolve => {
@@ -58,9 +58,9 @@ async function GetGroup(request, response) {
       .sort({ updatedTime: -1 })
       .lean()
 
-    for(let group of groups) {
+    for (let group of groups) {
       group.name = GetNameOfPrivateGroup(decoded._id, group)
-      group.numberOfMessagesUnReaded = await Message.count({ group: group._id, user: { $ne: decoded._id }, memberReaded: { $ne: decoded._id }})
+      group.numberOfMessagesUnReaded = await Message.count({ group: group._id, user: { $ne: decoded._id }, memberReaded: { $ne: decoded._id } })
     }
 
     return response.status(200).json({ status: 200, groups })
@@ -114,28 +114,59 @@ async function UpdateGroup(request, response) {
 
 async function CreateGroup(request, response) {
   const { decoded } = request
+
+  if (!request.body.members) {
+    return response.status(400).json({ status: 400, message: "Không tìm thấy trường members" })
+  }
+
+  if (!Array.isArray(request.body.members)) {
+    return response.status(400).json({ status: 400, message: "Trường members phải là array" })
+  }
+
+  let members = [decoded._id]
+
+  for(let member of request.body.members) {
+    if(members.indexOf(member._id) === -1) {
+      members.push(member._id)
+    }
+  }
+
+  request.body.members = members
+  
   try {
-    let newGroup = new Group(request.body)
+    const existGroup = await ExistGroup(request.body.members)
 
-    newGroup.members[newGroup.members.length] = decoded._id
+    console.log(request.body.members)
+    
+    if (existGroup) {
+      console.log("Đã tồn tại")
+      return response.status(200).json({ status: 200, newGroup: existGroup, isExist: true })
+    } else {
+      console.log("Chưa tồn tại")
+      if(!request.body.name) {
+        request.body.name = "Nhóm tạo bởi " + decoded.name
+      }
 
-    await newGroup.save()
+      let newGroup = new Group(request.body)
 
-    const newMessage = new Message({
-      user: decoded._id,
-      group: newGroup._id,
-      content: "Đã tạo nhóm",
-      type: "text"
-    })
+      await newGroup.save()
 
-    await newMessage.save()
+      const newMessage = new Message({
+        user: decoded._id,
+        group: newGroup._id,
+        content: "Đã tạo nhóm",
+        type: "text"
+      })
 
-    newGroup.lastMessage = newMessage._id
-    await newGroup.save()
+      await newMessage.save()
 
-    const newGroupAfterSave = await Group.findById(newGroup._id).populate("members", "username name avatar")
+      newGroup.lastMessage = newMessage._id
+      await newGroup.save()
 
-    return response.status(200).json({ status: 200, newGroup: newGroupAfterSave })
+      const newGroupAfterSave = await Group.findById(newGroup._id).populate("members", "username name avatar")
+
+      return response.status(200).json({ status: 200, newGroup: newGroupAfterSave, isExist: false })
+    }
   } catch (error) {
     return response.status(500).json({ status: 500, message: "Oops! Something wrong!", error })
   }

@@ -1,3 +1,5 @@
+import Group from "../../../models/Group"
+
 function GetNameOfPrivateGroup (userId, group) {
   if(group.members.length === 2) {
     for(let member of group.members) {
@@ -9,6 +11,25 @@ function GetNameOfPrivateGroup (userId, group) {
   return group.name
 }
 
+async function ExistGroup(members) {
+  const group = await Group.findOne({
+    $and: [
+      {
+        members: { $all: members }
+      },
+      { members: { $size: members.length } }
+    ]
+  })
+  .populate("members", "username name avatar online")
+  .lean()
+
+  if(group) {
+    return group
+  }
+  return null
+}
+
 export {
-  GetNameOfPrivateGroup
+  GetNameOfPrivateGroup,
+  ExistGroup
 }

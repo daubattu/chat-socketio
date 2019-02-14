@@ -133,6 +133,8 @@ async function PostMessage(request, response) {
       groupName = group.name
     }
 
+    group.name = groupName
+    
     for (let member of group.members) {
       const tokenNotifications = await TokenNotification.find({ user: member._id })
 

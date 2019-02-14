@@ -120,6 +120,8 @@ class ChatContainer extends Component {
 
           this.setState({ messages })
 
+          this.scrollToBottomOfWrapperMessages()
+          
           console.log("lastMessage", lastMessage.user)
 
           let group
@@ -220,10 +222,10 @@ class ChatContainer extends Component {
         messages.push(data)
         this.setState({ messages })
         
-        let wrapperMessages = document.getElementById("wrapper-messages")
-        if (wrapperMessages && (wrapperMessages.scrollTop === wrapperMessages.scrollHeight)) {
-          this.scrollToBottomOfWrapperMessages()         
-        }
+        // let wrapperMessages = document.getElementById("wrapper-messages")
+        // if (wrapperMessages && (wrapperMessages.scrollTop === wrapperMessages.scrollHeight)) {
+        this.scrollToBottomOfWrapperMessages()         
+        // }
         this.props.handleUpdateGroup(groupUpdate)
       } else {
         if (this.props.currentUser._id !== data.user._id) {

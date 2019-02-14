@@ -226,6 +226,7 @@ class ChatContainer extends Component {
         // if (wrapperMessages && (wrapperMessages.scrollTop === wrapperMessages.scrollHeight)) {
         this.scrollToBottomOfWrapperMessages()         
         // }
+        groupUpdate.name = this.props.group.name
         this.props.handleUpdateGroup(groupUpdate)
       } else {
         if (this.props.currentUser._id !== data.user._id) {

@@ -33,7 +33,7 @@ async function GetGroup(request, response) {
   const { decoded } = request
 
   try {
-    const groups = await Group.find({ members: decoded._id })
+    const groups = await Group.find({ members: decoded._id, lastMessage: { $exists: true } })
       .limit(10)
       .populate({
         path: "lastMessage",
@@ -65,6 +65,7 @@ async function GetGroup(request, response) {
 
     return response.status(200).json({ status: 200, groups })
   } catch (error) {
+    console.log(error)
     return response.status(500).json({ status: 500, message: "Oops! Something wrong!", error })
   }
 }
@@ -132,7 +133,7 @@ async function CreateGroup(request, response) {
   }
 
   request.body.members = members
-  
+
   try {
     const existGroup = await ExistGroup(request.body.members)
 

@@ -226,7 +226,6 @@ class ChatContainer extends Component {
         // if (wrapperMessages && (wrapperMessages.scrollTop === wrapperMessages.scrollHeight)) {
         this.scrollToBottomOfWrapperMessages()         
         // }
-        groupUpdate.name = this.props.group.name
         this.props.handleUpdateGroup(groupUpdate)
       } else {
         if (this.props.currentUser._id !== data.user._id) {
@@ -239,9 +238,11 @@ class ChatContainer extends Component {
               }
             }
           }
-          if (group) {
-            groupUpdate.name = group.name
+          // groupUpdate.name = group.name
+          if(group) {
             groupUpdate.numberOfMessagesUnReaded = group.numberOfMessagesUnReaded + 1
+          } else {
+            groupUpdate.numberOfMessagesUnReaded = 1
           }
         }
 

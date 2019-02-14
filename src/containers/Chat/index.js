@@ -237,6 +237,7 @@ class ChatContainer extends Component {
             }
           }
           if (group) {
+            groupUpdate.name = group.name
             groupUpdate.numberOfMessagesUnReaded = group.numberOfMessagesUnReaded + 1
           }
         }

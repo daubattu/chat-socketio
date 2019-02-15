@@ -125,11 +125,30 @@ async function CreateGroup(request, response) {
   }
 
   let members = [decoded._id]
+  let membersInValid = []
 
   for(let member of request.body.members) {
     if(members.indexOf(member._id) === -1) {
-      members.push(member._id)
+      const isValidMember = await User.findById(member._id)
+      if(isValidMember) {
+        members.push(member._id)
+      } else {
+        membersInValid.push(member._id)
+      }
     }
+  }
+
+  if(membersInValid.length !== 0) {
+    let stringIdInValid = ""
+    for(let memberInValid of membersInValid) {
+      stringIdInValid += stringIdInValid === "" ? memberInValid : `, ${memberInValid}`
+    }
+
+    return response.status(400).json({ status: 400, message: `ID người dùng ${ stringIdInValid } không hợp lệ` })
+  }
+
+  if(members.length === 1) {
+    return response.status(400).json({ status: 400, message: "Chưa chọn người tham gia chat" })
   }
 
   request.body.members = members

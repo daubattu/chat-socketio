@@ -184,8 +184,17 @@ async function CreateGroup(request, response) {
       await newGroup.save()
 
       const newGroupAfterSave = await Group.findById(newGroup._id)
-      .populate("members", "username name avatar")
+      .populate("members", "username name avatar online")
       .populate("lastMessage")
+      .lean()
+
+      if(newGroupAfterSave.members.length === 2) {
+        for(let member of newGroupAfterSave.members) {
+          if(member._id.toString() !== decoded._id) {
+            newGroupAfterSave.name = member.name
+          }
+        }
+      }
 
       return response.status(200).json({ status: 200, newGroup: newGroupAfterSave, isExist: false })
     }

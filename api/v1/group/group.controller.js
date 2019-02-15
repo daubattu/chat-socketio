@@ -128,12 +128,12 @@ async function CreateGroup(request, response) {
   let membersInValid = []
 
   for(let member of request.body.members) {
-    if(members.indexOf(member._id) === -1) {
-      const isValidMember = await User.findById(member._id)
+    if(members.indexOf(member) === -1) {
+      const isValidMember = await User.findById(member)
       if(isValidMember) {
-        members.push(member._id)
+        members.push(member)
       } else {
-        membersInValid.push(member._id)
+        membersInValid.push(member)
       }
     }
   }

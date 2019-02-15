@@ -66,10 +66,21 @@ class SideBarLeftContainer extends Component {
     handleMakeNewGroup: async () => {
       const { newGroup, isLoading, openModal } = this.state
 
+      if(!newGroup.members || newGroup.members.length === 0) {
+        this.pushNotifycation("error", "Chưa chọn thành viên để tạo nhóm chat")
+        return
+      }
+
       isLoading.makeNewGroup = true
       this.setState({ isLoading })
 
-      await axios.post("/api/v1/groups", newGroup)
+      let members = []
+
+      for(let member of newGroup.members) {
+        members.push(member._id)
+      }
+
+      await axios.post("/api/v1/groups", { ...newGroup, members })
         .then(response => {
           console.log(response.data)
           openModal.makeNewGroup = false

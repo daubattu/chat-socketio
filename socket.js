@@ -202,7 +202,7 @@ const socket = server => {
       try {
         if (data) {
           if (socket.decoded) {
-            socket.to(data.groupId).emit('typing', { user: { _id: socket.decoded._id, name: socket.decoded.name || socket.decoded.username, avatar: socket.decoded.avatar } })
+            socket.to(data.groupId).emit('typing', { user: { _id: socket.decoded._id, name: socket.decoded.name, avatar: socket.decoded.avatar } })
             markMessageReaded(data.groupId, socket)
           }
         }
@@ -212,8 +212,11 @@ const socket = server => {
     })
 
     socket.on("unTyping", data => {
-      if (data)
-        socket.to(data.groupId).emit('unTyping')
+      if (data) {
+        if(socket.decoded) {
+          socket.to(data.groupId).emit('unTyping', { user: { _id: socket.decoded._id, name: socket.decoded.name, avatar: socket.decoded.avatar } })
+        }
+      }
     })
 
     socket.on("disconnect", async () => {

@@ -158,8 +158,25 @@ async function CreateGroup(request, response) {
 
     console.log(request.body.members)
     
+    const computedNameOfGroup = group => {
+      let nameOfGroup
+
+      if(group.members.length === 2) {
+        for(let member of group.members) {
+          if(member._id.toString() !== decoded._id) {
+            nameOfGroup = member.name
+          }
+        }
+      } else {
+        return nameOfGroup = group.name
+      }
+
+      return nameOfGroup
+    }
+
     if (existGroup) {
       console.log("Đã tồn tại")
+      existGroup.name = computedNameOfGroup(existGroup)
       return response.status(200).json({ status: 200, newGroup: existGroup, isExist: true })
     } else {
       console.log("Chưa tồn tại")
@@ -188,13 +205,7 @@ async function CreateGroup(request, response) {
       .populate("lastMessage")
       .lean()
 
-      if(newGroupAfterSave.members.length === 2) {
-        for(let member of newGroupAfterSave.members) {
-          if(member._id.toString() !== decoded._id) {
-            newGroupAfterSave.name = member.name
-          }
-        }
-      }
+      newGroupAfterSave.name = computedNameOfGroup(newGroupAfterSave)
 
       return response.status(200).json({ status: 200, newGroup: newGroupAfterSave, isExist: false })
     }

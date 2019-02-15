@@ -95,8 +95,20 @@ class ChatContainer extends Component {
   }
 
   componentWillMount() {
-    socket = socketIOClient("http://chatapp.stovietnam.com")
-    // socketIOClient("localhost:3000")
+    socket = socketIOClient("http://chatapp.stovietnam.com", {
+      reconnection: true,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax : 5000,
+      reconnectionAttempts: Infinity
+    })
+    
+    // socketIOClient("localhost:3000", {
+    //   reconnection: true,
+    //   reconnectionDelay: 1000,
+    //   reconnectionDelayMax : 5000,
+    //   reconnectionAttempts: Infinity
+    // })
+    
     // socketIOClient("http://chatapp.stovietnam.com")
 
     socket.on("newConnection", data => {

@@ -19,9 +19,12 @@ async function pushNotificationToIOS(token, title, message, user, group) {
 
   await apnProvider.send(notification, token)
     .then(result => {
-      console.log("result push totification toIOS", result)
+      // console.log("result push totification toIOS", result)
       if (result.failed && result.failed.length === 0) {
         success = true
+        console.log("push notification success", result, token)
+      } else {
+        console.log(result.failed)
       }
     })
 

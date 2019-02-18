@@ -87,7 +87,9 @@ async function UpdateGroup(request, response) {
           path: "user",
           select: {
             username: 1,
-            avatar: 1
+            avatar: 1,
+            name: 1,
+            online: 1
           }
         }
       })
@@ -95,7 +97,9 @@ async function UpdateGroup(request, response) {
         path: "members",
         select: {
           username: 1,
-          avatar: 1
+          avatar: 1,
+          name: 1,
+          online: 1
         }
       })
 

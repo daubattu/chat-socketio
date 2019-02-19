@@ -188,7 +188,10 @@ async function CreateGroup(request, response) {
         request.body.name = "Nhóm tạo bởi " + decoded.name
       }
 
-      let newGroup = new Group(request.body)
+      let newGroup = new Group({
+        ...request.body,
+        admin: decoded._id
+      })
 
       await newGroup.save()
 

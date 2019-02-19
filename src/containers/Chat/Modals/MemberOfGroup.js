@@ -2,7 +2,7 @@ import React, { Fragment } from "react"
 import { Modal, Button, Icon } from "antd"
 
 function MemberOfGroup(props) {
-  const { group, visible, actions, isLoading, newMemberIds } = props
+  const { group, visible, actions, isLoading, newMemberIds, isAdmin, isMe } = props
 
   const styleOfStatusGroup = online => { 
     return {
@@ -34,7 +34,12 @@ function MemberOfGroup(props) {
           {
             group.members.map((member, index) => {
               return (
-                <div className="item-member-of-modal-members-group" onClick={() => actions.confirmDeleteMember(member)} key={member._id || index} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "5px" }}>
+                <div className="item-member-of-modal-members-group" 
+                  key={member._id || index}
+                  onClick={() => { 
+                    if(group.admin && (isAdmin || isMe(member._id))) actions.confirmDeleteMember(member, isMe(member._id)) 
+                  }} 
+                  style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "5px" }}>
                   <div>
                     <div style={{ position: "relative", display: "inline-block" }}>
                       <img src={member.avatar} style={{ width: "30px", height: "30px", marginRight: "5px" }} />
@@ -42,7 +47,17 @@ function MemberOfGroup(props) {
                     </div>
                     <b>{member.name}</b>
                   </div>
-                  <Icon type="delete" />
+                  {
+                    group.admin
+                    &&
+                    <Fragment>
+                      {
+                        isMe(member._id)
+                        ? <a className="button is-primary is-small">Rời nhóm</a>
+                        : (isAdmin && <Icon type="delete" />)
+                      }
+                    </Fragment>
+                  }
                 </div>
               )
             })

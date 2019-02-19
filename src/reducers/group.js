@@ -14,6 +14,9 @@ export default (state = { members: [] }, action) => {
         ...state,
         members: [...state.members].filter(member => member._id !== action.deleteMemberId)
       }
+      if(state.members.length === 0) {
+        state = {}
+      }
       break
     default: break
   }

@@ -298,6 +298,7 @@ function GroupMember() {
     delete: async (request, response) => {
       const { groupId } = request.params
       const { deleteMemberId } = request.query
+      const { decoded } = request
 
       if (!deleteMemberId) {
         return response.status(400).json({ status: 400, message: "Không tìm thấy trường deleteMemberId" })
@@ -316,6 +317,16 @@ function GroupMember() {
           return response.status(404).json({ status: 404, message: "Nhóm chat không tồn tại" })
         }
 
+        if(!group.admin) {
+          return response.status(400).json({ status: 400, message: "Không thể xóa thành viên trong nhóm chat private" })
+        }
+
+        console.log(decoded._id.toString(), deleteMemberId, decoded._id.toString(), group.admin)
+
+        if((decoded._id.toString() !== deleteMemberId.toString()) && (decoded._id.toString() !== group.admin.toString())) {
+          return response.status(403).json({ status: 403, message: "Chỉ có admin nhóm mới có quyền xóa thành viên" })
+        }
+
         let members = group.members, indexOfMemberDelete = -1
 
         for (let i = 0; i < members.length; i++) {
@@ -332,11 +343,19 @@ function GroupMember() {
 
         members.splice(indexOfMemberDelete, 1)
 
-        group.members = members
-        group.markModified("group")
-        group.updatedTime = Date.now()
-        group.save()
-
+        if(group.members.length === 0) {
+          group.remove()
+          // Message.deleteMany({ group: group._id })
+        } else {
+          if(deleteMemberId === group.admin.toString()) {
+            group.admin = members[0]
+          }
+          group.members = members
+          group.markModified("group")
+          group.updatedTime = Date.now()
+          group.save()
+          return response.status(200).json({ status: 200, admin: members[0], members })
+        }
         return response.status(200).json({ status: 200 })
       } catch (error) {
         console.log(error)

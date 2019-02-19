@@ -10,7 +10,7 @@ const GroupSchema = new Schema({
   name: String,
   lastMessage: { type: Schema.Types.ObjectId, ref: "Message" },
   updatedTime: { type: Number, default: Date.now() },
-  admin: { type: Schema.Types.ObjectId, ref: "User", required: true, default: null }
+  admin: { type: Schema.Types.ObjectId, ref: "User" }
 })
 
 GroupSchema.pre("save", function (next) {

@@ -65,7 +65,11 @@ function Chat(props) {
           <div className="info-group" style={{ width: "100%", background: "#eee", position: "absolute", display: "flex", justifyContent: "space-between", padding: "5px 10px", borderRadius: "3px" }}>
             <span>
               <b>{group.name}</b>
-              <small onClick={() => actions.handleChangeStatusModal("listMembers")} style={{ cursor: "pointer" }}> {group.members.length} thành viên</small>
+              {
+                group.admin
+                &&
+                <small onClick={() => actions.handleChangeStatusModal("listMembers")} style={{ cursor: "pointer" }}> {group.members.length} thành viên</small>
+              }
             </span>
             {
               isLoadingLoadMoreMessage

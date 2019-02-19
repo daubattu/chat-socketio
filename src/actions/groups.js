@@ -26,3 +26,10 @@ export function handleUpdateGroupById(groupId) {
     groupId
   }
 }
+
+export function handleDeleteGroupById(groupId) {
+  return {
+    type: "GROUPS_DELETE_GROUP",
+    groupId
+  }
+}

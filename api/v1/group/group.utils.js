@@ -17,7 +17,8 @@ async function ExistGroup(members) {
       {
         members: { $all: members }
       },
-      { members: { $size: members.length } }
+      { members: { $size: members.length } },
+      { admin: { $exists: false } }
     ]
   })
   .populate("members", "username name avatar online")

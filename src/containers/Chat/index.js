@@ -6,7 +6,7 @@ import ModalMemberOfGroup from "./Modals/MemberOfGroup"
 import axios from "axios";
 import { handleLogOut } from "../../actions/auth"
 import { setCurrentGroup, addMembersGroup, deleteMemberOfGroup } from "../../actions/group"
-import { handleUpdateGroup } from "../../actions/groups"
+import { handleUpdateGroup, handleDeleteGroupById } from "../../actions/groups"
 import { Modal } from "antd"
 import { updateFriend } from "../../actions/friends"
 import _ from "lodash"
@@ -298,12 +298,18 @@ class ChatContainer extends Component {
     setMessageSelected: messageSelected => {
       this.setState({ messageSelected })
     },
-    confirmDeleteMember: deleteMember => {
+    confirmDeleteMember: (deleteMember, isMe = false) => {
       let _this = this
-      const { group } = this.props
+      let { group } = this.props
+
+      let title = `Bạn có thực sự muốn xóa người dùng ${deleteMember.name || deleteMember.username} khỏi nhóm chat ${group.name}?`
+
+      if(isMe) {
+        title = "Bạn có thực sự muốn rời nhóm chát " + group.name + " ?"
+      }
 
       confirm({
-        title: `Bạn có thực sự muốn xóa người dùng ${deleteMember.name || deleteMember.username} khỏi nhóm chat ${group.name}?`,
+        title,
         width: "30%",
         onOk() {
           return new Promise((resolve, reject) => {
@@ -311,9 +317,9 @@ class ChatContainer extends Component {
               params: {
                 deleteMemberId: deleteMember._id
               }
-            }).then(() => {
+            }).then(response => {
               _this.props.pushNotifycation("success", `Xóa người dùng ${deleteMember.name || deleteMember.username} khỏi nhóm chat ${group.name} thành công`)
-              const members = group.members
+              let members = group.members
 
               for (let i = 0; i < members.length; i++) {
                 if (members[i]._id === deleteMember._id) {
@@ -322,7 +328,19 @@ class ChatContainer extends Component {
                 }
               }
               _this.actions.handleChangeStatusModal("listMembers")
-              _this.props.handleUpdateGroup({ ...group, members: [...group.members].filter(member => member._id !== deleteMember._id) })
+              members = [...group.members].filter(member => member._id !== deleteMember._id)
+              if(response.data.admin) {
+                group = {
+                  ...group,
+                  admin: response.data.admin
+                }
+              }
+
+              if(members.length === 0 || isMe) {
+                _this.props.handleDeleteGroupById(group._id)
+              } else {
+                _this.props.handleUpdateGroup({ ...group, members })
+              }
               resolve()
             }, error => {
               let message = `Xóa người dùng ${deleteMember.name || deleteMember.username} khỏi nhóm chat ${group.name} không thành công`
@@ -389,7 +407,7 @@ class ChatContainer extends Component {
       let formData = new FormData()
       let config = { headers: { "Content-Type": "multipart/form-data" } }
 
-      if (message.type !== "text" && message.files) {
+      if (message.type !== "text" && message.files && message.files.length !== 0) {
         for (let attachment of message.files) {
           formData.append("attachments", attachment.file)
         }
@@ -418,7 +436,7 @@ class ChatContainer extends Component {
 
           messages.push({ type: "text", content: "Gửi thất bại", error: true, createdTime: Date.now(), user })
 
-          this.setState({ messages })
+          this.setState({ messages, message: { type: "text", content: null, files: null } })
 
           this.scrollToBottomOfWrapperMessages()
         })
@@ -433,6 +451,9 @@ class ChatContainer extends Component {
     handleChangeMessage: (field, value) => {
       let { message } = this.state
       message[field] = value
+      if(fields === "content" && (!message.files || message.files.length === 0)) {
+        message.type = "text"
+      }
       this.setState({ message })
     },
     handleDeleteFilesWithIndex: indexOfFile => {
@@ -532,6 +553,8 @@ class ChatContainer extends Component {
           messages={messages} 
         />
         <ModalMemberOfGroup
+          isMe={this.isMe}
+          isAdmin={group.admin && this.isMe(group.admin)}
           group={group}
           actions={this.actions}
           isLoading={loading.addNewMember}
@@ -552,4 +575,4 @@ function mapStateToProps(state) {
   }
 }
 
-export default connect(mapStateToProps, { handleLogOut, setCurrentGroup, deleteMemberOfGroup, addMembersGroup, handleUpdateGroup, updateFriend })(ChatContainer)
+export default connect(mapStateToProps, { handleLogOut, setCurrentGroup, handleDeleteGroupById, deleteMemberOfGroup, addMembersGroup, handleUpdateGroup, updateFriend })(ChatContainer)

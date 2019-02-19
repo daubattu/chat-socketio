@@ -6,13 +6,18 @@ function customCreatedTime(createdTime) {
 
 function customGroupAvatar(currentUser, members) {
   let users = [], online = false
-  members = members.filter(member => {
-    if(member._id !== currentUser._id && users.indexOf(member._id) === -1) {
-      if(member.online) online = true
-      users.push(member._id)
-      return members
-    }
-  })
+
+  if(members.length === 1) {
+    online = members[0].online
+  } else {
+    members = members.filter(member => {
+      if(member._id !== currentUser._id && users.indexOf(member._id) === -1) {
+        if(member.online) online = true
+        users.push(member._id)
+        return members
+      }
+    })
+  }
 
   members = members.slice(0, 4)
 

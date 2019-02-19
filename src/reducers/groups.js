@@ -1,24 +1,27 @@
+function findIndexById(groups, groupId) {
+  let index = -1
+  for (let i = 0; i < groups.length; i++) {
+    if (groups[i]._id === groupId) {
+      index = i
+      break
+    }
+  }
+  return index
+}
+
 export default (state = [], action) => {
   switch (action.type) {
     case "GROUPS_INIT_GROUPS":
       state = action.groups
       break      
     case "GROUPS_UPDATE_GROUP":
-      let indexOfGroup = -1
-      for (let i = 0; i < state.length; i++) {
-        if (state[i]._id === action.group._id) {
-          indexOfGroup = i
-          break
-        }
-      }
-
-      if(indexOfGroup !== -1) {
+      if(findIndexById(state, action.group._id) !== -1) {
         if(action.changePosition) {
-          state.splice(indexOfGroup, 1)
+          state.splice(findIndexById(state, action.group._id), 1)
           state = [action.group, ...state]
         } else {
           let stateTemp = [...state]
-          stateTemp[indexOfGroup] = action.group
+          stateTemp[findIndexById(state, action.group._id)] = action.group
           state = [...stateTemp]
         }
       } else {
@@ -28,7 +31,6 @@ export default (state = [], action) => {
     case "GROUPS_UPDATE_GROUP_BY_ID":
       for (let i = 0; i < state.length; i++) {
         if (state[i]._id === action.groupId) {
-          console.log(action.changePosition)
           state.splice(i, 1)
           state = [action.group, ...state]
           break
@@ -43,6 +45,13 @@ export default (state = [], action) => {
           state.splice(9, 1)
         }
         state = [action.group, ...state]
+      }
+      break
+    case "GROUPS_DELETE_GROUP":
+      if(findIndexById(state, action.groupId) !== -1) {
+        console.log("findIndexById(state, action.groupId) !== -1", findIndexById(state, action.groupId) !== -1)
+        // state.splice(findIndexById(state, action.groupId), 1)
+        state = [...state].filter(g => g._id !== action.groupId)
       }
       break
     default: break

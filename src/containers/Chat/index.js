@@ -451,7 +451,7 @@ class ChatContainer extends Component {
     handleChangeMessage: (field, value) => {
       let { message } = this.state
       message[field] = value
-      if(fields === "content" && (!message.files || message.files.length === 0)) {
+      if(field === "content" && (!message.files || message.files.length === 0)) {
         message.type = "text"
       }
       this.setState({ message })

@@ -19,6 +19,7 @@ function customGroupAvatar(currentUser, members) {
     })
   }
 
+  let numberOfMembers = members.length
   members = members.slice(0, 4)
 
   const styleOfStatusGroup = { 
@@ -35,14 +36,21 @@ function customGroupAvatar(currentUser, members) {
 
   return (
     <div className={"group-avatar group-avatar-" + (members.length < 4 ? members.length + 1 : "n")}>
-      <div style={ styleOfStatusGroup }></div>
       {
         members.map((member, index) => {
-          return (
-            <img id={member._id} key={member._id || index} src={member.avatar} />
-          )
+          if(!(numberOfMembers > 5 && index > 2)) {
+            return (
+              <div className="group-avatar-member" id={member._id} key={member._id || index} style={{ backgroundImage: `url(${member.avatar})` }}></div>
+            )
+          }
         })
       }
+      { 
+        numberOfMembers > 5 
+        &&
+        <div style={{ display: "flex", alignItems: "center", textAlign: "center", fontWeight: "bold", color: "#fff", backgroundColor: "#000" }} className="group-avatar-member">+{numberOfMembers - 2 }</div>
+      }
+      <div style={ styleOfStatusGroup }></div>
     </div>
   )
 }

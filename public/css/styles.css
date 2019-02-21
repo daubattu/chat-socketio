@@ -213,28 +213,32 @@ body {
   height: 50px;
   position: relative;
 }
-.group .group-avatar img {
+.group .group-avatar .group-avatar-member {
   height: 100%;
   width: 100%;
   border: 1px solid black;
+  background-position: center;
+  background-size: cover;
+  display: inline-block;
+  float: left;
 }
-.group .group-avatar-2 img {
+.group .group-avatar-2 .group-avatar-member {
   width: 100%;
 }
 
-.group .group-avatar-3 img {
+.group .group-avatar-3 .group-avatar-member {
   width: 50%;
 }
 
-.group .group-avatar-3 img:first-child {
+.group .group-avatar-3 .group-avatar-member:first-child {
   border-right: 0;
 }
 
-.group .group-avatar-4 img:first-child {
+.group .group-avatar-4 .group-avatar-member:first-child {
   width: 60%;
 }
 
-.group .group-avatar-4 img:nth-child(2) {
+.group .group-avatar-4 .group-avatar-member:nth-child(2) {
   height: 50%;
   width: 40%;
   position: absolute;
@@ -243,7 +247,7 @@ body {
   border-bottom: 0;
 }
 
-.group .group-avatar-4 img:nth-child(3) {
+.group .group-avatar-4 .group-avatar-member:nth-child(3) {
   height: 50%;
   width: 40%;
   position: absolute;
@@ -251,16 +255,16 @@ body {
   border-left: 0;
 }
 
-.group .group-avatar-n img {
+.group .group-avatar-n .group-avatar-member {
   width: 50%;
   height: 50%;
 }
 
-.group .group-avatar-n img:first-child, .group .group-avatar-n img:nth-child(3) {
+.group .group-avatar-n .group-avatar-member:first-child, .group .group-avatar-n .group-avatar-member:nth-child(3) {
   border-right: 0;
 }
 
-.group .group-avatar-n img:first-child, .group .group-avatar-n img:nth-child(2) {
+.group .group-avatar-n .group-avatar-member:first-child, .group .group-avatar-n .group-avatar-member:nth-child(2) {
   border-bottom: 0;
 }
 

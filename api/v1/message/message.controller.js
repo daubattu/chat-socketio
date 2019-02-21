@@ -2,6 +2,7 @@ import Message from "../../../models/Message"
 import Group from "../../../models/Group"
 import TokenNotification from "../../../models/TokenNotification";
 import { pushNotificationToIOS } from "../../notifications"
+import sizeOf from "image-size"
 
 String.prototype.replaceAll = function (search, replacement) {
   var target = this;
@@ -105,6 +106,7 @@ async function PostMessage(request, response) {
       }
 
       for (let attachment of request.files) {
+        // const demenssions = sizeOf()
         files.push(attachment.filename)
       }
       newMessage.files = files

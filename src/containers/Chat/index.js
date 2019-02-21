@@ -117,13 +117,12 @@ class ChatContainer extends Component {
 
     socket.on("readedLastMessage", data => {
       if (this.state.messages) {
-        console.log("data readedLastMessage", data)
-
         let messages = [...this.state.messages]
 
         let lastMessage = messages[messages.length - 1]
 
-        if ((lastMessage.user._id === this.props.currentUser._id) && (lastMessage.user._id !== data.user._id)) {
+        // if ((lastMessage.user._id === this.props.currentUser._id) && (lastMessage.user._id !== data.user._id)) {
+        if (lastMessage.user._id !== data.user._id) {
           if (!lastMessage.memberReaded) lastMessage.memberReaded = []
 
           lastMessage.memberReaded.push(data.user)
@@ -133,8 +132,6 @@ class ChatContainer extends Component {
           this.setState({ messages })
 
           this.scrollToBottomOfWrapperMessages()
-          
-          console.log("lastMessage", lastMessage.user)
 
           let group
 

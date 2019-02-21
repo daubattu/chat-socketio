@@ -57,28 +57,21 @@ const markMessageReaded = async (groupId, socket) => {
   const group = await Group.findOne({ _id: groupId, members: socket.decoded._id })
 
   if (group) {
+    // Lấy tin nhắn cuối cùng của group đó user có _id = socket.decode._id chưa đọc
     const latestMessage = await Message.findOne({ group: groupId, memberReaded: { $ne: socket.decoded._id } }).sort({ createdTime: -1 })
 
+    // Nếu tin cuối cùng của group đó mà user có _id = socket.decode._id chưa đọc thì emit socket event readedLastMessage
     if (latestMessage) {
-      let indexOfMemberReaded = _.findIndex(latestMessage.memberReaded, member => member.toString() === socket.decoded._id.toString())
-
-      if (indexOfMemberReaded === -1) {
-        socket.to(groupId).emit('readedLastMessage', { user: { _id: socket.decoded._id, name: socket.decoded.name || socket.decoded.username, avatar: socket.decoded.avatar } })
-      }
+      socket.to(groupId).emit('readedLastMessage', { user: { _id: socket.decoded._id, name: socket.decoded.name, avatar: socket.decoded.avatar } })
 
       const messages = await Message.find({ group: groupId, memberReaded: { $ne: socket.decoded._id } })
 
       if (messages) {
         for (let message of messages) {
-          if ((message.user !== socket.decoded._id) && message.memberReaded) {
-            let indexOfMemberReaded = _.findIndex(message.memberReaded, member => member.toString() === socket.decoded._id)
-
-            if (indexOfMemberReaded === -1) {
-              message.memberReaded.push(socket.decoded._id)
-              message.markModified("memberReaded")
-              message.save()
-            }
-          }
+          if (message.memberReaded) message.memberReaded.push(socket.decoded._id)
+          else message.memberReaded = [socket.decoded._id]
+          message.markModified("memberReaded")
+          message.save()
         }
       }
     }

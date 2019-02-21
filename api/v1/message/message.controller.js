@@ -94,7 +94,8 @@ async function PostMessage(request, response) {
       group: request.body.groupId,
       createdTime: Date.now(),
       type: request.body.type,
-      content: request.body.content
+      content: request.body.content,
+      memberReaded: [decoded._id]
     })
 
     if (request.body.type !== "text" && request.files) {
@@ -123,6 +124,7 @@ async function PostMessage(request, response) {
           path: "lastMessage members"
         }
       })
+      .populate("memberReaded", "name avatar online")
       .lean()
 
     const computeNameOfGroup = (member) => {

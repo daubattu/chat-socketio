@@ -12,12 +12,16 @@ import { updateFriend } from "../../actions/friends"
 import _ from "lodash"
 
 let socket
+let timeOutClearTyping
+
+const numberOfSecondClearTyping = 8000
 
 const confirm = Modal.confirm
 
 class ChatContainer extends Component {
   state = {
     messages: [],
+    memberTyping: [],
     messageSelected: null,
     message: {
       type: "text",
@@ -441,11 +445,20 @@ class ChatContainer extends Component {
     handleOnTyping: () => {
       this.setState({ isTyping: false })
       socket.emit("typing", { groupId: this.props.group._id })
+
+      // check sau 5s thì emit event unTyping to server
+      if(!timeOutClearTyping) {
+        timeOutClearTyping = setTimeout(() => {
+          socket.emit("unTyping", { groupId: this.props.group._id })
+          timeOutClearTyping = null
+        }, numberOfSecondClearTyping)
+      }
     },
     handleUnTyping: () => {
       socket.emit("unTyping", { groupId: this.props.group._id })
     },
     handleChangeMessage: (field, value) => {
+      this.actions.handleOnTyping()
       let { message } = this.state
       message[field] = value
       if(field === "content" && (!message.files || message.files.length === 0)) {
@@ -469,6 +482,7 @@ class ChatContainer extends Component {
       this.setState({ message })
     },
     handleChangeMessageWithFile: (typeFile, files) => {
+      this.actions.handleOnTyping()
       let { message } = this.state
 
       if (typeFile !== "image" && files[0].size > 25 * 1024 * 1024) {

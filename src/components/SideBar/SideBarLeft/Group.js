@@ -7,12 +7,12 @@ function customCreatedTime(createdTime) {
 function customGroupAvatar(currentUser, members) {
   let users = [], online = false
 
-  if(members.length === 1) {
+  if (members.length === 1) {
     online = members[0].online
   } else {
     members = members.filter(member => {
-      if(member._id !== currentUser._id && users.indexOf(member._id) === -1) {
-        if(member.online) online = true
+      if (member._id !== currentUser._id && users.indexOf(member._id) === -1) {
+        if (member.online) online = true
         users.push(member._id)
         return members
       }
@@ -22,7 +22,7 @@ function customGroupAvatar(currentUser, members) {
   let numberOfMembers = members.length
   members = members.slice(0, 4)
 
-  const styleOfStatusGroup = { 
+  const styleOfStatusGroup = {
     width: "10px",
     position: "absolute",
     bottom: 0,
@@ -38,60 +38,60 @@ function customGroupAvatar(currentUser, members) {
     <div className={"group-avatar group-avatar-" + (members.length < 4 ? members.length + 1 : "n")}>
       {
         members.map((member, index) => {
-          if(!(numberOfMembers > 5 && index > 2)) {
+          if (!(numberOfMembers > 5 && index > 2)) {
             return (
               <div className="group-avatar-member" id={member._id} key={member._id || index} style={{ backgroundImage: `url(${member.avatar})` }}></div>
             )
           }
         })
       }
-      { 
-        numberOfMembers > 5 
+      {
+        numberOfMembers > 5
         &&
-        <div style={{ display: "flex", alignItems: "center", textAlign: "center", fontWeight: "bold", color: "#fff", backgroundColor: "#000" }} className="group-avatar-member">+{numberOfMembers - 2 }</div>
+        <div style={{ display: "flex", alignItems: "center", textAlign: "center", fontWeight: "bold", color: "#fff", backgroundColor: "#000" }} className="group-avatar-member">+{numberOfMembers - 2}</div>
       }
-      <div style={ styleOfStatusGroup }></div>
+      <div style={styleOfStatusGroup}></div>
     </div>
   )
 }
 
 function displayMemberReaded(message) {
   let readedByText = ""
-  if(message.memberReaded) {
-    for(let memberReaded of message.memberReaded) {
-      if(memberReaded !== message.user._id) {
+  if (message.memberReaded) {
+    for (let memberReaded of message.memberReaded) {
+      if (memberReaded !== message.user._id) {
         readedByText += readedByText === "" ? memberReaded : `, ${memberReaded}`
       }
     }
 
-    if(readedByText !== "") {
+    if (readedByText !== "") {
       return <small><i style={{ color: "green", marginLeft: "5px" }} className="fa fa-check-circle-o" aria-hidden="true"></i></small>
     }
-    
+
     return null
   } else return null
 }
 
 function customLastMessage(message) {
-  if(message.type === "text") {
+  if (message.type === "text") {
     return message.content ? message.content.slice(0, 30) : ""
   } else {
-    if(message.type === "image") {
+    if (message.type === "image") {
       return (
         <Fragment>
-          Đã gửi { message.files.length } bức ảnh <i className="fa fa-picture-o" />
+          Đã gửi {message.files.length} bức ảnh <i className="fa fa-picture-o" />
         </Fragment>
       )
     } else if (message.type === "video") {
       return (
         <Fragment>
-          Đã gửi { message.files.length } video <i className="fa fa-video-camera" />
+          Đã gửi {message.files.length} video <i className="fa fa-video-camera" />
         </Fragment>
       )
     } else if (message.type === "file") {
       return (
         <Fragment>
-          Đã gửi { message.files.length } file đính kèm <b><i className="fa fa-paperclip" /></b>
+          Đã gửi {message.files.length} file đính kèm <b><i className="fa fa-paperclip" /></b>
         </Fragment>
       )
     } else {
@@ -100,33 +100,42 @@ function customLastMessage(message) {
   }
 }
 
+function renderLastMessage(group, isMe) {
+  return (
+    <div>
+      <div className="group-last-message">
+        <small style={{ maxWidth: "80%", overflow: "hidden" }}>
+          {isMe(group.lastMessage.user._id) && "You: "}
+          {customLastMessage(group.lastMessage)}
+          {isMe(group.lastMessage.user._id) && displayMemberReaded(group.lastMessage)}
+        </small>
+        {
+          !isMe(group.lastMessage.user._id)
+          &&
+          <img src={group.lastMessage.user.avatar} style={{ height: "20px" }} />
+        }
+      </div>
+      <small style={{ textAlign: "right", width: "100%", display: "inline-block" }}>{customCreatedTime(group.lastMessage.createdTime)}</small>
+    </div>
+  )
+}
+
 function Group(props) {
   const { group, setCurrentGroup, isMe, currentUser } = props
 
   return (
-    <div className={ group.numberOfMessagesUnReaded !== 0 ? "group has-new-message px-4" : "group px-4" }>
+    <div className={group.numberOfMessagesUnReaded !== 0 ? "group has-new-message px-4" : "group px-4"}>
       {customGroupAvatar(currentUser, group.members)}
       <div className="group-detail">
-        <b className="group-name" onClick={() => setCurrentGroup(group)}>{group.name} { group.numberOfMessagesUnReaded !== 0 && <span style={{ color: "red" }}>({group.numberOfMessagesUnReaded})</span>}</b>
-        {
-          group.lastMessage
-          &&
-          <div>
-            <div className="group-last-message">
-              <small style={{ maxWidth: "80%", overflow: "hidden" }}>
-                { isMe(group.lastMessage.user._id) && "You: " }
-                { customLastMessage(group.lastMessage) }
-                { isMe(group.lastMessage.user._id) && displayMemberReaded(group.lastMessage) }
-              </small>
-              {
-                !isMe(group.lastMessage.user._id)
-                &&
-                <img src={group.lastMessage.user.avatar} style={{ height: "20px" }} />
-              }
-            </div>
-            <small style={{ textAlign: "right", width: "100%", display: "inline-block" }}>{customCreatedTime(group.lastMessage.createdTime)}</small>
-          </div>
-        }
+        <div style={{ display: "flex", alignItems: "center" }}>
+          <b className="group-name" onClick={() => setCurrentGroup(group)}>{group.name} {group.numberOfMessagesUnReaded !== 0 && <span style={{ color: "red" }}>({group.numberOfMessagesUnReaded})</span>}</b>
+          {
+            group.membersTyping && group.membersTyping.length !== 0
+            ? <img style={{ height: "10px", marginLeft: "3px" }} src="/images/typing.gif" />
+            : null
+          }
+        </div>
+        { group.lastMessage && renderLastMessage(group, isMe) }
       </div>
     </div>
   )

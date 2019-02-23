@@ -13,6 +13,7 @@ import _ from "lodash"
 
 let socket
 let timeOutClearTyping
+let timeInterval
 
 const numberOfSecondClearTyping = 8000
 
@@ -21,7 +22,7 @@ const confirm = Modal.confirm
 class ChatContainer extends Component {
   state = {
     messages: [],
-    memberTyping: [],
+    membersTyping: [],
     messageSelected: null,
     message: {
       type: "text",
@@ -38,7 +39,6 @@ class ChatContainer extends Component {
     },
     newMemberIds: [],
     socket: null,
-    isTyping: false,
     openExtendTypeMessage: false,
     deleteMemberId: null,
     page: 0,
@@ -60,7 +60,7 @@ class ChatContainer extends Component {
       params: { group, page }
     }).then(response => {
       let messages = response.data.messages || []
-      if(page !== 0) {
+      if (page !== 0) {
         messages = [...messages, ...this.state.messages]
         this.setState({ messages, page })
       } else {
@@ -81,7 +81,7 @@ class ChatContainer extends Component {
     const page = this.state.page + 1, numberOfPage = this.state.numberOfPage
     console.log("handleScroll", wrapperMessages)
 
-    if(wrapperMessages.scrollTop === 0 && page < numberOfPage) {
+    if (wrapperMessages.scrollTop === 0 && page < numberOfPage) {
       console.log("load more message", page)
       let loading = { ...this.state.loading }
       loading.loadMoreMessage = true
@@ -102,17 +102,17 @@ class ChatContainer extends Component {
     socket = socketIOClient("http://chatapp.stovietnam.com", {
       reconnection: true,
       reconnectionDelay: 1000,
-      reconnectionDelayMax : 5000,
+      reconnectionDelayMax: 5000,
       reconnectionAttempts: Infinity
     })
-    
+
     // socketIOClient("localhost:3000", {
     //   reconnection: true,
     //   reconnectionDelay: 1000,
     //   reconnectionDelayMax : 5000,
     //   reconnectionAttempts: Infinity
     // })
-    
+
     // socketIOClient("http://chatapp.stovietnam.com")
 
     socket.on("newConnection", data => {
@@ -160,11 +160,11 @@ class ChatContainer extends Component {
 
       let groups = this.props.groups
 
-      for(let group of groups) {
+      for (let group of groups) {
         let members = group.members
         const indexOfMember = _.findIndex(members, m => m._id === data._id)
 
-        if(indexOfMember !== -1) {
+        if (indexOfMember !== -1) {
           members[indexOfMember].online = true
           this.props.handleUpdateGroup(group, false)
         }
@@ -176,11 +176,11 @@ class ChatContainer extends Component {
       console.log("your friend have just disconnected", data)
       let groups = this.props.groups
 
-      for(let group of groups) {
+      for (let group of groups) {
         let members = group.members
         const indexOfMember = _.findIndex(members, m => m._id === data._id)
 
-        if(indexOfMember !== -1) {
+        if (indexOfMember !== -1) {
           members[indexOfMember].online = false
           this.props.handleUpdateGroup(group, false)
         }
@@ -194,7 +194,7 @@ class ChatContainer extends Component {
     // On event unauthorized
     socket.on('unauthorized', data => {
       console.log('unauthorized: ', data.message)
-      if(data) {
+      if (data) {
         this.props.pushNotifycation("error", data.message)
         socket.disconnect()
         if (data.level === "error") {
@@ -205,18 +205,77 @@ class ChatContainer extends Component {
         this.props.pushNotifycation("error", "Không có phản hồi từ server")
       }
     })
-    // socket.emit("joinRoom", { groupId: this.props.currentUser._id })
+
     socket.on("typing", data => {
-      // console.log(data)
-      const userId = data.user._id
-      if(userId !== this.props.currentUser._id) {
-        document.getElementById("message-content").placeholder = ""
-        this.setState({ isTyping: true })
+      if (data.user._id !== this.props.currentUser._id) {
+        let membersTyping
+
+        if (data.groupId !== this.props.group._id) {
+          try {
+            const indexOfGroup = _.findIndex(this.props.groups, group => group._id === data.groupId)
+            if (indexOfGroup !== -1) {
+              if (!this.props.groups[indexOfGroup].membersTyping) {
+                membersTyping = [data.user]
+              } else {
+                const indexOfMember = _.findIndex(this.props.groups[indexOfGroup].membersTyping, member => member._id === data.user._id)
+                if (indexOfMember === -1) {
+                  membersTyping = [...this.props.groups[indexOfGroup].membersTyping]
+                  membersTyping.unshift(data.user)
+                }
+              }
+              let group = { ...this.props.groups[indexOfGroup], membersTyping }
+              this.props.handleUpdateGroup(group, false)
+            }
+          } catch (error) {
+            console.log(error)
+          }
+        } else {
+          membersTyping = [...this.state.membersTyping]
+          const indexOfMember = _.findIndex(membersTyping, m => m._id === data.user._id)
+
+          if (indexOfMember === -1) {
+            membersTyping.unshift(data.user)
+          }
+
+          document.getElementById("message-content").placeholder = ""
+          this.setState({ membersTyping })
+        }
       }
     })
 
-    socket.on("unTyping", () => {
-      this.setState({ isTyping: false })
+    socket.on("unTyping", data => {
+      let membersTyping
+
+      if (data.groupId !== this.props.group._id) {
+        const indexOfGroup = _.findIndex(this.props.groups, group => group._id === data.groupId)
+        if (indexOfGroup !== -1) {
+          if (!this.props.groups[indexOfGroup].membersTyping) {
+            membersTyping = []
+          } else {
+            const indexOfMember = _.findIndex(this.props.groups[indexOfGroup].membersTyping, member => member._id === data.user._id)
+            if (indexOfMember !== -1) {
+              membersTyping = [...this.props.groups[indexOfGroup].membersTyping]
+              membersTyping.splice(indexOfMember, 1)
+            }
+          }
+          let group = { ...this.props.groups[indexOfGroup], membersTyping }
+          this.props.handleUpdateGroup(group, false)
+        }
+      } else {
+        membersTyping = [...this.state.membersTyping]
+
+        const indexOfMember = _.findIndex(membersTyping, m => m._id === data.user._id)
+
+        if (indexOfMember !== -1) {
+          membersTyping.splice(indexOfMember, 1)
+          if (data.groupId !== this.props.group._id) {
+            let group = { ...this.props.group, membersTyping }
+            this.props.handleUpdateGroup(group, false)
+          }
+        }
+
+        this.setState({ membersTyping })
+      }
     })
 
     socket.on("receiveNewMessage", data => {
@@ -234,10 +293,10 @@ class ChatContainer extends Component {
         let { messages } = this.state
         messages.push(data)
         this.setState({ messages })
-        
+
         // let wrapperMessages = document.getElementById("wrapper-messages")
         // if (wrapperMessages && (wrapperMessages.scrollTop === wrapperMessages.scrollHeight)) {
-        this.scrollToBottomOfWrapperMessages()         
+        this.scrollToBottomOfWrapperMessages()
         // }
         this.props.handleUpdateGroup(groupUpdate)
       } else {
@@ -252,7 +311,7 @@ class ChatContainer extends Component {
             }
           }
           // groupUpdate.name = group.name
-          if(group) {
+          if (group) {
             groupUpdate.numberOfMessagesUnReaded = group.numberOfMessagesUnReaded + 1
           } else {
             groupUpdate.numberOfMessagesUnReaded = 1
@@ -268,6 +327,7 @@ class ChatContainer extends Component {
   componentWillReceiveProps(nextProps) {
     if (nextProps.group._id) {
       if (nextProps.group._id !== this.props.group._id) {
+        if(nextProps.group.membersTyping) this.setState({ membersTyping: nextProps.group.membersTyping })
         this.setState({ messages: null, page: 0, numberOfPage: 0 })
         this.GetMessage(nextProps.group._id)
         socket.emit("joinRoom", { groupId: nextProps.group._id })
@@ -288,7 +348,7 @@ class ChatContainer extends Component {
         }
 
         if (this.props.group._id) {
-          this.setState({ isTyping: false })
+          this.setState({ membersTyping: [] })
           socket.emit("leaveRoom", { groupId: this.props.group._id })
         }
       }
@@ -305,7 +365,7 @@ class ChatContainer extends Component {
 
       let title = `Bạn có thực sự muốn xóa người dùng ${deleteMember.name || deleteMember.username} khỏi nhóm chat ${group.name}?`
 
-      if(isMe) {
+      if (isMe) {
         title = "Bạn có thực sự muốn rời nhóm chát " + group.name + " ?"
       }
 
@@ -330,14 +390,14 @@ class ChatContainer extends Component {
               }
               _this.actions.handleChangeStatusModal("listMembers")
               members = [...group.members].filter(member => member._id !== deleteMember._id)
-              if(response.data.admin) {
+              if (response.data.admin) {
                 group = {
                   ...group,
                   admin: response.data.admin
                 }
               }
 
-              if(members.length === 0 || isMe) {
+              if (members.length === 0 || isMe) {
                 _this.props.handleDeleteGroupById(group._id)
               } else {
                 _this.props.handleUpdateGroup({ ...group, members })
@@ -404,6 +464,7 @@ class ChatContainer extends Component {
       document.getElementById("message-content").blur()
 
       let message = { ...this.state.message }
+      let membersTyping = [...this.state.membersTyping]
 
       let formData = new FormData()
       let config = { headers: { "Content-Type": "multipart/form-data" } }
@@ -430,7 +491,14 @@ class ChatContainer extends Component {
           }
           this.scrollToBottomOfWrapperMessages()
           document.getElementById("message-content").focus()
-          this.setState({ message, isTyping: false })
+
+          // xóa người này khỏi danh sách membersTyping
+          const indexOfMember = _.findIndex(membersTyping, m => m._id === this.props.currentUser._id)
+          if (indexOfMember !== -1) {
+            membersTyping.splice(indexOfMember, 1)
+          }
+
+          this.setState({ message, membersTyping })
         }, () => {
           let { messages } = this.state
           let user = this.props.currentUser
@@ -443,16 +511,13 @@ class ChatContainer extends Component {
         })
     },
     handleOnTyping: () => {
-      this.setState({ isTyping: false })
       socket.emit("typing", { groupId: this.props.group._id })
 
       // check sau 5s thì emit event unTyping to server
-      if(!timeOutClearTyping) {
-        timeOutClearTyping = setTimeout(() => {
-          socket.emit("unTyping", { groupId: this.props.group._id })
-          timeOutClearTyping = null
-        }, numberOfSecondClearTyping)
-      }
+      clearTimeout(timeOutClearTyping)
+      timeOutClearTyping = setTimeout(() => {
+        socket.emit("unTyping", { groupId: this.props.group._id })
+      }, numberOfSecondClearTyping)
     },
     handleUnTyping: () => {
       socket.emit("unTyping", { groupId: this.props.group._id })
@@ -461,8 +526,12 @@ class ChatContainer extends Component {
       this.actions.handleOnTyping()
       let { message } = this.state
       message[field] = value
-      if(field === "content" && (!message.files || message.files.length === 0)) {
-        message.type = "text"
+      if (field === "content") {
+        // Nếu thay đổi nội dung tin nhắn về rỗng thì emit unTyping
+        if (!value) this.actions.handleUnTyping()
+        if ((!message.files || message.files.length === 0)) {
+          message.type = "text"
+        }
       }
       this.setState({ message })
     },
@@ -546,22 +615,22 @@ class ChatContainer extends Component {
 
   render() {
     const { group } = this.props
-    const { openModal, loading, newMemberIds, messages, message, isTyping, openExtendTypeMessage, messageSelected } = this.state
+    const { openModal, loading, newMemberIds, messages, message, membersTyping, openExtendTypeMessage, messageSelected } = this.state
 
     return (
       <main role="main" className="col-md-6 ml-sm-auto pt-3 px-4 border-right" style={{ height: "calc(100vh - 48px)" }}>
-        <Chat 
+        <Chat
           isLoadingLoadMoreMessage={loading.loadMoreMessage}
           handleScroll={this.handleScroll}
-          messageSelected={messageSelected} 
-          isLatestMessage={this.isLatestMessage} 
-          message={message} 
-          openExtendTypeMessage={openExtendTypeMessage} 
-          isMe={this.isMe} 
-          isTyping={isTyping} 
-          group={group} 
-          actions={this.actions} 
-          messages={messages} 
+          messageSelected={messageSelected}
+          isLatestMessage={this.isLatestMessage}
+          message={message}
+          openExtendTypeMessage={openExtendTypeMessage}
+          isMe={this.isMe}
+          membersTyping={membersTyping}
+          group={group}
+          actions={this.actions}
+          messages={messages}
         />
         <ModalMemberOfGroup
           isMe={this.isMe}

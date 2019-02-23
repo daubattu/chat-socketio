@@ -24,6 +24,51 @@ const countNumberSocketOfUser = async (userId, socketId) => {
   return numberSocketOfUser
 }
 
+// function get all socket of user by user id
+const getSocketsByUserId = async userId => {
+  const sockets = []
+
+  try {
+    const tokensNotification = await TokenNotification.find({ user: userId })
+    for(let tokenNotification of tokensNotification) {
+      sockets.push(tokenNotification.sockets)
+    }
+  } catch(error) {
+    console.log(error)
+  }
+
+  return sockets  
+}
+
+//function get member online in group
+const membersOnlineByGroupId = async groupId => {
+  let membersOnline = []
+
+  try {
+    const group = await Group.findById(groupId)
+    if(group) {
+      membersOnline = await User.find({ online: true, _id: { $in: group.members } }, "_id")
+      console.log(membersOnline)
+    }
+  } catch(error) {
+    console.log(error)
+  }
+
+  return membersOnline
+}
+
+const emitTypingOrUnTypingToGroup = async (socket, eventName, groupId) => {
+  const membersOnline = await membersOnlineByGroupId(groupId)
+
+  for(let member of membersOnline) {
+    const socketsOfMember = await getSocketsByUserId(member._id)
+    for(let socketOfMember of socketsOfMember) {
+      const dataEmit = { groupId: groupId, user: { _id: socket.decoded._id, name: socket.decoded.name, avatar: socket.decoded.avatar } }
+      socket.to(socketOfMember).emit(eventName, dataEmit)
+    }
+  }
+}
+
 // function emit event user's friend online/offline
 const emitFriendOnLineOrOffline = async (socket, user, eventName, dataEmit) => {
   const friends = await User.find({ _id: { $in: user.friends }, online: true }, "_id")
@@ -195,7 +240,7 @@ const socket = server => {
       try {
         if (data) {
           if (socket.decoded) {
-            socket.to(data.groupId).emit('typing', { user: { _id: socket.decoded._id, name: socket.decoded.name, avatar: socket.decoded.avatar } })
+            emitTypingOrUnTypingToGroup(socket, "typing", data.groupId)
             markMessageReaded(data.groupId, socket)
           }
         }
@@ -207,7 +252,7 @@ const socket = server => {
     socket.on("unTyping", data => {
       if (data) {
         if(socket.decoded) {
-          socket.to(data.groupId).emit('unTyping', { user: { _id: socket.decoded._id, name: socket.decoded.name, avatar: socket.decoded.avatar } })
+          emitTypingOrUnTypingToGroup(socket, "unTyping", data.groupId)
         }
       }
     })

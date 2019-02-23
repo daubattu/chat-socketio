@@ -2,7 +2,7 @@ import React, { Fragment } from "react"
 import Messages from "./Messages";
 
 function Chat(props) {
-  const { group, actions, messages, message, isTyping, isMe, openExtendTypeMessage, isLatestMessage, messageSelected, handleScroll, isLoadingLoadMoreMessage } = props
+  const { group, actions, messages, message, membersTyping, isMe, openExtendTypeMessage, isLatestMessage, messageSelected, handleScroll, isLoadingLoadMoreMessage } = props
 
   const isValid = message => {
     if (message.type === "text") {
@@ -89,7 +89,7 @@ function Chat(props) {
         <div>
           <div className="input-message" style={{ marginBottom: "40px", position: "relative" }}>
             <div style={{ position: "relative" }}>
-              {isTyping  && !message.content ? <img className="typing" src="/images/typing.gif" /> : null}
+              {membersTyping.length !== 0 && !message.content ? <img className="typing" src="/images/typing.gif" /> : null}
               <textarea
                 onKeyPress={event => {
                   if (event.key === 'Enter') {

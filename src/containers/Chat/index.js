@@ -214,15 +214,19 @@ class ChatContainer extends Component {
           try {
             const indexOfGroup = _.findIndex(this.props.groups, group => group._id === data.groupId)
             if (indexOfGroup !== -1) {
-              if (!this.props.groups[indexOfGroup].membersTyping) {
-                membersTyping = [data.user]
+
+              if (this.props.groups[indexOfGroup].membersTyping) {
+                membersTyping = [...this.props.groups[indexOfGroup].membersTyping]
               } else {
-                const indexOfMember = _.findIndex(this.props.groups[indexOfGroup].membersTyping, member => member._id === data.user._id)
-                if (indexOfMember === -1) {
-                  membersTyping = [...this.props.groups[indexOfGroup].membersTyping]
-                  membersTyping.unshift(data.user)
-                }
+                membersTyping = []
               }
+
+              const indexOfMember = _.findIndex(this.props.groups[indexOfGroup].membersTyping, member => member._id === data.user._id)
+
+              if (indexOfMember === -1) {
+                membersTyping.unshift(data.user)
+              }
+
               let group = { ...this.props.groups[indexOfGroup], membersTyping }
               this.props.handleUpdateGroup(group, false)
             }
@@ -249,17 +253,16 @@ class ChatContainer extends Component {
       if (data.groupId !== this.props.group._id) {
         const indexOfGroup = _.findIndex(this.props.groups, group => group._id === data.groupId)
         if (indexOfGroup !== -1) {
-          if (!this.props.groups[indexOfGroup].membersTyping) {
-            membersTyping = []
-          } else {
+          if(this.props.groups[indexOfGroup].membersTyping) {
+            membersTyping = [...this.props.groups[indexOfGroup].membersTyping]
             const indexOfMember = _.findIndex(this.props.groups[indexOfGroup].membersTyping, member => member._id === data.user._id)
+  
             if (indexOfMember !== -1) {
-              membersTyping = [...this.props.groups[indexOfGroup].membersTyping]
               membersTyping.splice(indexOfMember, 1)
+              let group = { ...this.props.groups[indexOfGroup], membersTyping }
+              this.props.handleUpdateGroup(group, false)
             }
           }
-          let group = { ...this.props.groups[indexOfGroup], membersTyping }
-          this.props.handleUpdateGroup(group, false)
         }
       } else {
         membersTyping = [...this.state.membersTyping]
@@ -327,7 +330,7 @@ class ChatContainer extends Component {
   componentWillReceiveProps(nextProps) {
     if (nextProps.group._id) {
       if (nextProps.group._id !== this.props.group._id) {
-        if(nextProps.group.membersTyping) this.setState({ membersTyping: nextProps.group.membersTyping })
+        if (nextProps.group.membersTyping) this.setState({ membersTyping: nextProps.group.membersTyping })
         this.setState({ messages: null, page: 0, numberOfPage: 0 })
         this.GetMessage(nextProps.group._id)
         socket.emit("joinRoom", { groupId: nextProps.group._id })
@@ -496,8 +499,14 @@ class ChatContainer extends Component {
           const indexOfMember = _.findIndex(membersTyping, m => m._id === this.props.currentUser._id)
           if (indexOfMember !== -1) {
             membersTyping.splice(indexOfMember, 1)
-          }
 
+            const indexOfGroup = _.findIndex(this.props.groups, group => group._id === this.props.group._id)
+
+            if (indexOfGroup !== -1) {
+              let group = { ...this.props.group, membersTyping }
+              this.props.handleUpdateGroup(group, false)
+            }
+          }
           this.setState({ message, membersTyping })
         }, () => {
           let { messages } = this.state

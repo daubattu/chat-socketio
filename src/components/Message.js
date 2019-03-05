@@ -12,7 +12,9 @@ function displayMessageAttachment(type, files) {
         {
           files.map((file, index) => {
             return (
-              <img key={index} src={file.thumbnailSrc} className="message-attachments-item image" />
+              <a key={index} href={file.originalSrc} data-lity>
+                <img src={file.thumbnailSrc} className="message-attachments-item image" />
+              </a>
             )
           })
         }
@@ -24,8 +26,12 @@ function displayMessageAttachment(type, files) {
         {
           files.map((file, index) => {
             return (
-              <img key={index} src={file.thumbnailSrc} style={{ height: "50px", borderRadius: "5px" }} className="message-attachments-item video" />
-              // <video key={index} src={file.originalSrc} className="message-attachments-item video" style={{ height: "150px", marginTop: "5px" }} controls />
+              <a key={index} style={{ display: "block", position: "relative", cursor: "pointer" }} href={file.originalSrc} data-lity>
+                <img src={file.thumbnailSrc} style={{ height: "50px", borderRadius: "5px" }} className="message-attachments-item video" />
+                <div style={{ position: "absolute", width: "100%", height: "100%", background: "#fff", top: 0, opacity: ".5" }}>
+                </div>
+                <Icon style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", fontSize: "30px", color: "black" }} type="play-circle" />
+              </a>
             )
           })
         }

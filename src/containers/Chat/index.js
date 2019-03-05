@@ -33,8 +33,8 @@ const resizeImage = async (dataUrl, fileName) => {
   var canvas = document.createElement("canvas");
   var ctx = canvas.getContext("2d");
 
-  var MAX_WIDTH = 1280;
-  var MAX_HEIGHT = 720;
+  var MAX_WIDTH = 50;
+  var MAX_HEIGHT = 50;
 
   var { width, height } = await getWidthHeightOfImage(img)
   

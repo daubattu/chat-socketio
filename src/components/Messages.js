@@ -9,12 +9,12 @@ function Messages(props) {
         messages
         &&
         <Fragment>
-          { 
+          {
             messages.map((message, index) => {
-            return (
-              <Message key={message._id || index} setMessageSelected={ setMessageSelected } messageSelected={messageSelected} message={message} numberOfMember={numberOfMember} isLatestMessage={ isLatestMessage } isMe={isMe} />
-            )
-          })
+              return (
+                <Message key={message._id || index} setMessageSelected={setMessageSelected} messageSelected={messageSelected} message={message} numberOfMember={numberOfMember} isLatestMessage={isLatestMessage} isMe={isMe} />
+              )
+            })
           }
         </Fragment>
       }

@@ -7,6 +7,7 @@ import { SECRET_KEY_JWT } from "./configs"
 import TokenNotification from "./models/TokenNotification";
 import Group from "./models/Group";
 import Message from "./models/Message";
+import { GetNameOfPrivateGroup } from "./api/v1/group/group.utils"
 
 // function đếm số lượng socket mà người dùng đang kết nối
 const countNumberSocketOfUser = async (userId, socketId) => {
@@ -81,12 +82,11 @@ const emitFriendOnLineOrOffline = async (socket, user, eventName, dataEmit) => {
       if (tokenNotificationsOfFriend.sockets && tokenNotificationsOfFriend.sockets.length !== 0) {
         for (let socketOfFriend of tokenNotificationsOfFriend.sockets) {
           if (io.sockets.connected[socketOfFriend]) {
-            if (eventName === "yourFriendOnline") {
-              const group = await user.getGroupChatWithFriend(friend._id)
-              dataEmit = {
-                ...dataEmit,
-                group
-              }
+            const group = await user.getGroupChatWithFriend(friend._id)
+            group.name = GetNameOfPrivateGroup(user._id, group)
+            dataEmit = {
+              ...dataEmit,
+              group
             }
 
             socket.to(socketOfFriend).emit(eventName, dataEmit)

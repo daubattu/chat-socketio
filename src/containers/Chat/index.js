@@ -33,8 +33,8 @@ const resizeImage = async (dataUrl, fileName) => {
   var canvas = document.createElement("canvas");
   var ctx = canvas.getContext("2d");
 
-  var MAX_WIDTH = 50;
-  var MAX_HEIGHT = 50;
+  var MAX_WIDTH = 480;
+  var MAX_HEIGHT = 480;
 
   var { width, height } = await getWidthHeightOfImage(img)
   
@@ -225,9 +225,10 @@ class ChatContainer extends Component {
       console.log("your friend have just disconnected", data)
       let groups = this.props.groups
 
+      let indexOfMember
       for (let group of groups) {
         let members = group.members
-        const indexOfMember = _.findIndex(members, m => m._id === data._id)
+        indexOfMember = _.findIndex(members, m => m._id === data._id)
 
         if (indexOfMember !== -1) {
           members[indexOfMember].online = false

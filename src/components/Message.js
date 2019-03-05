@@ -13,7 +13,7 @@ function displayMessageAttachment(type, files) {
           files.map((file, index) => {
             return (
               <a key={index} href={file.originalSrc} data-lity>
-                <img src={file.thumbnailSrc} className="message-attachments-item image" />
+                <img onError={event => event.target.src = "/images/404.jpg"} src={file.thumbnailSrc} className="message-attachments-item image" />
               </a>
             )
           })
@@ -26,10 +26,9 @@ function displayMessageAttachment(type, files) {
         {
           files.map((file, index) => {
             return (
-              <a key={index} style={{ display: "block", position: "relative", cursor: "pointer" }} href={file.originalSrc} data-lity>
-                <img src={file.thumbnailSrc} style={{ height: "50px", borderRadius: "5px" }} className="message-attachments-item video" />
-                <div style={{ position: "absolute", width: "100%", height: "100%", background: "#fff", top: 0, opacity: ".5" }}>
-                </div>
+              <a key={index} style={{ display: "inline-block", position: "relative", cursor: "pointer" }} href={file.originalSrc} data-lity>
+                <img onError={event => event.target.src = "/images/404.jpg"} src={file.thumbnailSrc} style={{ height: "50px", borderRadius: "5px" }} className="message-attachments-item video" />
+                <div style={{ position: "absolute", width: "100%", height: "100%", background: "#fff", top: 0, opacity: ".3" }}></div>
                 <Icon style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", fontSize: "30px", color: "black" }} type="play-circle" />
               </a>
             )

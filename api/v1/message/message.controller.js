@@ -3,6 +3,7 @@ import Group from "../../../models/Group"
 import TokenNotification from "../../../models/TokenNotification";
 import { pushNotificationToIOS } from "../../notifications"
 import sizeOf from "image-size"
+import path from "path"
 
 String.prototype.replaceAll = function (search, replacement) {
   var target = this;
@@ -105,11 +106,34 @@ async function PostMessage(request, response) {
         newMessage.content = request.files[0].originalname + " - " + formatFileSize(request.files[0].size)
       }
 
-      for (let attachment of request.files) {
-        // const demenssions = sizeOf()
-        files.push(attachment.filename)
+      console.log("request.files", request.files)
+
+      const staticFolder = path.resolve(__dirname, "../../../public")
+
+      if (request.files.attachments && request.files.thumbnails) {
+        for (let i = 0; i < request.files.attachments.length; i++) {
+          const attachment = request.files.attachments[i]
+          const thumbnailSrc = request.files.thumbnails[i].filename
+          if (request.body.type === "image" || request.body.type === "video") {
+            const demenssions = sizeOf(staticFolder + thumbnailSrc)
+            console.log("demenssions demenssionsdemenssionsdemenssionsdemenssionsdemenssionsdemenssions", demenssions)
+            files.push({
+              originalSrc: attachment.filename,
+              thumbnailSrc,
+              width: demenssions.width,
+              height: demenssions.height
+            })
+          } else {
+            files.push({
+              originalSrc: attachment.filename,
+              thumbnailSrc,
+              width: 0,
+              height: 0
+            })
+          }
+        }
+        newMessage.files = files
       }
-      newMessage.files = files
     }
 
     await newMessage.save()
@@ -133,22 +157,22 @@ async function PostMessage(request, response) {
       let groupName
 
       console.log(member._id.toString(), decoded._id)
-        if(member._id.toString() === decoded._id) {
-          for(let memberOfGroup of group.members) {
-            if(member._id !== memberOfGroup._id) {
-              groupName = memberOfGroup.name
-            }
+      if (member._id.toString() === decoded._id) {
+        for (let memberOfGroup of group.members) {
+          if (member._id !== memberOfGroup._id) {
+            groupName = memberOfGroup.name
           }
-        } else {
-          groupName = decoded.name
         }
+      } else {
+        groupName = decoded.name
+      }
 
       return groupName
     }
 
     for (let member of group.members) {
 
-      if(group.members.length === 2) {
+      if (group.members.length === 2) {
         message.group.name = computeNameOfGroup(member)
       }
 

@@ -11,7 +11,12 @@ const MessageSchema = new Schema({
   ],
   type: { type: String, default: "text" },
   content: String,
-  files: [String]
+  files: [{
+    originalSrc: String,
+    thumbnailSrc: String,
+    width: Number,
+    height: Number
+  }]
 })
 
 export default mongoose.model("Message", MessageSchema)

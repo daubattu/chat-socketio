@@ -13,11 +13,60 @@ import _ from "lodash"
 
 let socket
 let timeOutClearTyping
-let timeInterval
 
 const numberOfSecondClearTyping = 8000
 
 const confirm = Modal.confirm
+
+const resizeImage = async (dataUrl, fileName) => {
+  var img = document.createElement("img");
+  img.src = dataUrl
+
+  function getWidthHeightOfImage(img) {
+    return new Promise(resolve => {
+      img.onload = () => {
+        resolve({ width: img.width, height: img.height })
+      }
+    }) 
+  }
+
+  var canvas = document.createElement("canvas");
+  var ctx = canvas.getContext("2d");
+
+  var MAX_WIDTH = 1280;
+  var MAX_HEIGHT = 720;
+
+  var { width, height } = await getWidthHeightOfImage(img)
+  
+  if (width > height) {
+    if (width > MAX_WIDTH) {
+      height *= MAX_WIDTH / width;
+      width = MAX_WIDTH;
+    }
+  } else {
+    if (height > MAX_HEIGHT) {
+      width *= MAX_HEIGHT / height;
+      height = MAX_HEIGHT;
+    }
+  }
+
+  canvas.width = width;
+  canvas.height = height;
+  ctx.drawImage(img, 0, 0, width, height);
+
+  let dataUrlThumbnail = canvas.toDataURL("image/jpeg");
+
+  function dataURLtoFile(base64) {
+    var arr = base64.split(','), mime = arr[0].match(/:(.*?);/)[1], bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
+
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new File([u8arr], fileName + ".jpg", { type: mime });
+  }
+
+  return dataURLtoFile(dataUrlThumbnail)
+}
 
 class ChatContainer extends Component {
   state = {
@@ -253,10 +302,10 @@ class ChatContainer extends Component {
       if (data.groupId !== this.props.group._id) {
         const indexOfGroup = _.findIndex(this.props.groups, group => group._id === data.groupId)
         if (indexOfGroup !== -1) {
-          if(this.props.groups[indexOfGroup].membersTyping) {
+          if (this.props.groups[indexOfGroup].membersTyping) {
             membersTyping = [...this.props.groups[indexOfGroup].membersTyping]
             const indexOfMember = _.findIndex(this.props.groups[indexOfGroup].membersTyping, member => member._id === data.user._id)
-  
+
             if (indexOfMember !== -1) {
               membersTyping.splice(indexOfMember, 1)
               let group = { ...this.props.groups[indexOfGroup], membersTyping }
@@ -475,6 +524,13 @@ class ChatContainer extends Component {
       if (message.type !== "text" && message.files && message.files.length !== 0) {
         for (let attachment of message.files) {
           formData.append("attachments", attachment.file)
+          let thumbnail
+
+          if (message.type === "video" || message.type === "image") {
+            thumbnail = await resizeImage(attachment.src, attachment.file.name)
+          }
+
+          formData.append("thumbnails", thumbnail)
         }
       }
 
@@ -582,8 +638,6 @@ class ChatContainer extends Component {
             message.files[i] = {}
           }
 
-          console.log(this.state.message)
-
           message.files[i].file = files[i]
           message.files[i].name = files[i].name + " - " + formatFileSize(files[i].size)
 
@@ -594,9 +648,37 @@ class ChatContainer extends Component {
           this.scrollToBottomOfWrapperMessages()
 
           reader.onload = event => {
-            message.files[i].src = event.target.result
-            message.files[i].isLoading = false
-            this.setState({ message })
+            // message.files[i].thumbnail = resizeImage(event.target.result, files[i].name)
+            if (typeFile === "video") {
+              const video = document.createElement("video")
+              video.src = event.target.result
+              if(video.duration > 5) {
+                video.currentTime = 2
+              }
+
+              const canvas = document.createElement("canvas")
+              const context = canvas.getContext('2d')
+              video.addEventListener("loadeddata", () => {
+                const ratio = video.videoWidth / video.videoHeight;
+                // Define the required width as 100 pixels smaller than the actual video's width
+                const width = video.videoWidth - 100
+                // Calculate the height based on the video's width and the ratio
+                const height = parseInt(width / ratio, 10)
+                // Set the canvas width and height to the values just calculated
+                canvas.width = width;
+                canvas.height = height;
+
+                console.log("width, height", width, height)
+                context.drawImage(video, 0, 0, width, height)
+                message.files[i].src = canvas.toDataURL("image/jpeg")
+                message.files[i].isLoading = false
+                this.setState({ message })
+              })
+            } else {
+              message.files[i].src = event.target.result
+              message.files[i].isLoading = false
+              this.setState({ message })
+            }
             this.scrollToBottomOfWrapperMessages()
           }
 

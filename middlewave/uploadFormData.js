@@ -5,7 +5,16 @@ const storage = multer.diskStorage({
     callback(null, "public")
   },
   filename: (request, file, callback) => {
-    callback(null, "/uploads/" + Date.now() + "-" + file.originalname)
+    let folder
+
+    if(file.fieldname === "attachments") {
+      folder = "/uploads/originals/" 
+    } else if (file.fieldname === "thumbnails") {
+      folder = "/uploads/thumbnails/"
+    } else {
+      folder = "/uploads/"
+    }
+    callback(null, folder + Date.now() + "-" + file.originalname)
   }
 })
 

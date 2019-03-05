@@ -12,7 +12,7 @@ function displayMessageAttachment(type, files) {
         {
           files.map((file, index) => {
             return (
-              <img key={index} src={file} className="message-attachments-item image" />
+              <img key={index} src={file.thumbnailSrc} className="message-attachments-item image" />
             )
           })
         }
@@ -24,7 +24,8 @@ function displayMessageAttachment(type, files) {
         {
           files.map((file, index) => {
             return (
-              <video key={index} src={file} className="message-attachments-item video" style={{ height: "150px", marginTop: "5px" }} controls />
+              <img key={index} src={file.thumbnailSrc} style={{ height: "50px", borderRadius: "5px" }} className="message-attachments-item video" />
+              // <video key={index} src={file.originalSrc} className="message-attachments-item video" style={{ height: "150px", marginTop: "5px" }} controls />
             )
           })
         }
@@ -36,7 +37,7 @@ function displayMessageAttachment(type, files) {
         {
           files.map((file, index) => {
             return (
-              <a download key={index} href={file}><i className="fa fa-download" aria-hidden="true"></i></a>
+              <a download key={index} href={file.originalSrc}><i className="fa fa-download" aria-hidden="true"></i></a>
             )
           })
         }

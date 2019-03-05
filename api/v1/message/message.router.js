@@ -2,7 +2,7 @@ import express from "express"
 import { GetMessage, PostMessage } from "./message.controller"
 import { requireAuthenticate, uploadFormData } from "../../../middlewave"
 
-const uploadMessageAttachments = uploadFormData.array("attachments")
+const uploadMessageAttachments = uploadFormData.fields([{ name: "attachments" }, { name: "thumbnails" }])
 
 const router = express.Router()
 

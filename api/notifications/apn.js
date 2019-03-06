@@ -9,7 +9,7 @@ const options = {
     keyId: KEY_ID,
     teamId: TEAM_ID
   },
-  production: true
+  production: false
 }
 
 export default new apn.Provider(options)

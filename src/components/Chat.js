@@ -98,7 +98,7 @@ function Chat(props) {
                 }}
                 value={message.content || ""}
                 id="message-content"
-                // onFocus={actions.handleOnTyping}
+                onFocus={actions.handleReadLastMessage}
                 onBlur={actions.handleUnTyping}
                 onChange={event => actions.handleChangeMessage("content", event.target.value)}
                 className="form-control"

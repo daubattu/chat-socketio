@@ -85,17 +85,17 @@ class SideBarLeftContainer extends Component {
           console.log(response.data)
           openModal.makeNewGroup = false
           let group = response.data.newGroup
-          group.lastMessage = {
-            user: this.props.currentUser,
-            createdTime: Date.now(),
-            type: "text",
-            content: "Đã tạo nhóm",
-            memberReaded: []
-          }
-          if(!response.data.isExist) {
-            this.props.handleAddNewGroup(group)  
-            this.pushNotifycation("success", "Thêm nhóm " + newGroup.name + " thành công")
-          }
+          // group.lastMessage = {
+          //   user: this.props.currentUser,
+          //   createdTime: Date.now(),
+          //   type: "text",
+          //   content: "Đã tạo nhóm",
+          //   memberReaded: []
+          // }
+          // if(!response.data.isExist) {
+          //   this.props.handleAddNewGroup(group)  
+          //   this.pushNotifycation("success", "Thêm nhóm " + response.data.newGroup.name + " thành công")
+          // }
           this.props.setCurrentGroup(group)
         }, error => {
           let message = "Thêm nhóm " + newGroup.name + " không thành công"

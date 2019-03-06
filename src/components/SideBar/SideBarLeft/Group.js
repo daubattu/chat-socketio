@@ -124,11 +124,11 @@ function Group(props) {
   const { group, setCurrentGroup, isMe, currentUser } = props
 
   return (
-    <div className={group.numberOfMessagesUnReaded !== 0 ? "group has-new-message px-4" : "group px-4"}>
+    <div className={group.numberOfMessagesUnReaded ? "group has-new-message px-4" : "group px-4"}>
       {customGroupAvatar(currentUser, group.members)}
       <div className="group-detail">
         <div style={{ display: "flex", alignItems: "center" }}>
-          <b className="group-name" onClick={() => setCurrentGroup(group)}>{group.name} {group.numberOfMessagesUnReaded !== 0 && <span style={{ color: "red" }}>({group.numberOfMessagesUnReaded})</span>}</b>
+          <b className="group-name" onClick={() => setCurrentGroup(group)}>{group.name.slice(0, 20)} {group.numberOfMessagesUnReaded && <span style={{ color: "red" }}>({group.numberOfMessagesUnReaded})</span>}</b>
           {
             group.membersTyping && group.membersTyping.length !== 0
             ? <img style={{ height: "10px", marginLeft: "3px" }} src="/images/typing.gif" />

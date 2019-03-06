@@ -75,7 +75,7 @@ function displayMemberReaded(message, isMe, numberOfMember, isMeFunc) {
 }
 
 function Message(props) {
-  const { message, isMe, isLatestMessage, numberOfMember, messageSelected, setMessageSelected } = props
+  const { message, isMe, isLatestMessage, numberOfMember } = props
 
   return (
     <div className={isMe(message.user._id) ? "item-message me" : "item-message"}>

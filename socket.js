@@ -236,12 +236,26 @@ const socket = server => {
       socket.leave(data.groupId)
     })
 
+    socket.on("readLastMessage", data => {
+      console.log("readLastMessagereadLastMessagereadLastMessagereadLastMessage", data)
+      try {
+        if (data) {
+          if (socket.decoded) {
+            // emitTypingOrUnTypingToGroup(socket, "typing", data.groupId)
+            markMessageReaded(data.groupId, socket)
+          }
+        }
+      } catch (error) {
+        console.log(error)
+      }
+    })
+
     socket.on("typing", async data => {
       try {
         if (data) {
           if (socket.decoded) {
             emitTypingOrUnTypingToGroup(socket, "typing", data.groupId)
-            markMessageReaded(data.groupId, socket)
+            // markMessageReaded(data.groupId, socket)
           }
         }
       } catch (error) {

@@ -131,11 +131,21 @@ async function CreateGroup(request, response) {
   let members = [decoded._id]
   let membersInValid = []
 
+  const getFirstName = (name) => {
+    const lengthOfName = name.split(" ").length
+    return name.split(" ")[lengthOfName - 1]
+  }
+
+  let defaultName = "Nhóm của " + getFirstName(decoded.name)
+
   for(let member of request.body.members) {
     if(members.indexOf(member) === -1) {
       const isValidMember = await User.findById(member)
       if(isValidMember) {
         members.push(member)
+        if(member.toString() !== decoded._id.toString()) {
+          defaultName += ", " + getFirstName(isValidMember.name)
+        }
       } else {
         membersInValid.push(member)
       }
@@ -185,7 +195,7 @@ async function CreateGroup(request, response) {
     } else {
       console.log("Chưa tồn tại")
       if(!request.body.name) {
-        request.body.name = "Nhóm tạo bởi " + decoded.name
+        request.body.name = defaultName || "Nhóm tạo bởi " + decoded.name
       }
 
       let newGroup = new Group({
@@ -193,27 +203,25 @@ async function CreateGroup(request, response) {
         admin: decoded._id
       })
 
-      await newGroup.save()
+      // await newGroup.save()
 
-      const newMessage = new Message({
-        user: decoded._id,
-        group: newGroup._id,
-        content: "Đã tạo nhóm",
-        type: "text"
-      })
+      // const newMessage = new Message({
+      //   user: decoded._id,
+      //   group: newGroup._id,
+      //   content: "Đã tạo nhóm",
+      //   type: "text"
+      // })
 
-      await newMessage.save()
+      // await newMessage.save()
 
-      newGroup.lastMessage = newMessage._id
+      // newGroup.lastMessage = newMessage._id
       await newGroup.save()
 
       const newGroupAfterSave = await Group.findById(newGroup._id)
       .populate("members", "username name avatar online")
-      .populate("lastMessage")
       .lean()
 
       newGroupAfterSave.name = computedNameOfGroup(newGroupAfterSave)
-
       return response.status(200).json({ status: 200, newGroup: newGroupAfterSave, isExist: false })
     }
   } catch (error) {

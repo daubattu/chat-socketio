@@ -149,7 +149,7 @@ class ChatContainer extends Component {
   }
 
   componentWillMount() {
-    socket = socketIOClient("http://chatapp.stovietnam.com", {
+    socket = socketIOClient("localhost:3000", {
       reconnection: true,
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
@@ -170,18 +170,23 @@ class ChatContainer extends Component {
     })
 
     socket.on("readedLastMessage", data => {
+      console.log("datadatadatadatadatadatadata", data)
       if (this.state.messages) {
         let messages = [...this.state.messages]
 
-        let lastMessage = messages[messages.length - 1]
+        let lastMessage = { ...messages[messages.length - 1] }
+        let memberReaded = [...lastMessage.memberReaded]
 
-        // if ((lastMessage.user._id === this.props.currentUser._id) && (lastMessage.user._id !== data.user._id)) {
+        console.log("lastMessage.user._id !== data.user._id", lastMessage.user._id !== data.user._id)
+
         if (lastMessage.user._id !== data.user._id) {
           if (!lastMessage.memberReaded) lastMessage.memberReaded = []
 
           lastMessage.memberReaded.push(data.user)
-
+          memberReaded.push(data.user._id)
           messages[this.state.messages.length - 1] = lastMessage
+
+          console.log("lastMessagelastMessagelastMessagelastMessagelastMessagelastMessagelastMessagelastMessagelastMessagelastMessagelastMessagelastMessagelastMessagelastMessage", lastMessage)
 
           this.setState({ messages })
 
@@ -189,16 +194,21 @@ class ChatContainer extends Component {
 
           let group
 
+          console.log(lastMessage.group)
+
           if (this.props.groups) {
             for (let groupItem of this.props.groups) {
-              if (groupItem._id === lastMessage.group) {
+              if (groupItem._id === lastMessage.group._id) {
                 group = groupItem
               }
             }
           }
 
           if (group) {
-            group.lastMessage = lastMessage
+            group.lastMessage = {
+              ...group.lastMessage,
+              memberReaded
+            }
             this.props.handleUpdateGroup(group)
           }
         }
@@ -337,13 +347,13 @@ class ChatContainer extends Component {
         ...data.group,
         lastMessage: {
           ...data,
-          user: data.user
+          user: data.user,
+          memberReaded: []
         },
         numberOfMessagesUnReaded: 0
       }
 
       if (this.props.group._id === data.group._id) {
-        console.log("Có tin nhắn ở group này", data.group)
         let { messages } = this.state
         messages.push(data)
         this.setState({ messages })
@@ -353,6 +363,7 @@ class ChatContainer extends Component {
         this.scrollToBottomOfWrapperMessages()
         // }
         this.props.handleUpdateGroup(groupUpdate)
+        this.props.setCurrentGroup(groupUpdate)
       } else {
         if (this.props.currentUser._id !== data.user._id) {
           let group
@@ -372,8 +383,8 @@ class ChatContainer extends Component {
           }
         }
 
+        // this.props.setCurrentGroup(groupUpdate)
         this.props.handleUpdateGroup(groupUpdate)
-        console.log("Có tin nhắn ở group khác", data.group.name)
       }
     })
   }
@@ -451,10 +462,15 @@ class ChatContainer extends Component {
                 }
               }
 
+              console.log("group.lastMessagegroup.lastMessagegroup.lastMessagegroup.lastMessagegroup.lastMessagegroup.lastMessagegroup.lastMessagegroup.lastMessagegroup.lastMessagegroup.lastMessagegroup.lastMessagegroup.lastMessage", group.lastMessage)
               if (members.length === 0 || isMe) {
                 _this.props.handleDeleteGroupById(group._id)
               } else {
-                _this.props.handleUpdateGroup({ ...group, members })
+                const indexOfGroup = _.findIndex(_this.props.groups, g => g._id === group._id)
+
+                if(indexOfGroup !== -1) {
+                  _this.props.handleUpdateGroup({ ...group, members })
+                }
               }
               resolve()
             }, error => {
@@ -577,8 +593,17 @@ class ChatContainer extends Component {
           this.scrollToBottomOfWrapperMessages()
         })
     },
+    handleReadLastMessage: () => {
+      const lastMessage = { ...this.state.messages[this.state.messages.length - 1] }
+
+      const indexOfMemberReaded = _.findIndex(lastMessage.memberReaded, m => m._id === this.props.currentUser._id || m === this.props.currentUser._id)
+
+      if(indexOfMemberReaded === -1) {
+        socket.emit("readLastMessage", { groupId: this.props.group._id })
+      }
+    },
     handleOnTyping: () => {
-      if(!this.state.isTyping) {
+      if (!this.state.isTyping) {
         this.setState({ isTyping: true })
         socket.emit("typing", { groupId: this.props.group._id })
       }
@@ -590,7 +615,7 @@ class ChatContainer extends Component {
       }, numberOfSecondClearTyping)
     },
     handleUnTyping: () => {
-      if(this.state.isTyping) {
+      if (this.state.isTyping) {
         this.setState({ isTyping: false })
         socket.emit("unTyping", { groupId: this.props.group._id })
       }

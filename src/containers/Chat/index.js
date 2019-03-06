@@ -27,7 +27,7 @@ const resizeImage = async (dataUrl, fileName) => {
       img.onload = () => {
         resolve({ width: img.width, height: img.height })
       }
-    }) 
+    })
   }
 
   var canvas = document.createElement("canvas");
@@ -37,7 +37,7 @@ const resizeImage = async (dataUrl, fileName) => {
   var MAX_HEIGHT = 480;
 
   var { width, height } = await getWidthHeightOfImage(img)
-  
+
   if (width > height) {
     if (width > MAX_WIDTH) {
       height *= MAX_WIDTH / width;
@@ -91,7 +91,8 @@ class ChatContainer extends Component {
     openExtendTypeMessage: false,
     deleteMemberId: null,
     page: 0,
-    numberOfPage: 0
+    numberOfPage: 0,
+    isTyping: false
   }
 
   scrollToBottomOfWrapperMessages() {
@@ -257,6 +258,7 @@ class ChatContainer extends Component {
     })
 
     socket.on("typing", data => {
+      console.log("someone is typing", data)
       if (data.user._id !== this.props.currentUser._id) {
         let membersTyping
 
@@ -299,7 +301,6 @@ class ChatContainer extends Component {
 
     socket.on("unTyping", data => {
       let membersTyping
-
       if (data.groupId !== this.props.group._id) {
         const indexOfGroup = _.findIndex(this.props.groups, group => group._id === data.groupId)
         if (indexOfGroup !== -1) {
@@ -577,16 +578,22 @@ class ChatContainer extends Component {
         })
     },
     handleOnTyping: () => {
-      socket.emit("typing", { groupId: this.props.group._id })
+      if(!this.state.isTyping) {
+        this.setState({ isTyping: true })
+        socket.emit("typing", { groupId: this.props.group._id })
+      }
 
       // check sau 5s thì emit event unTyping to server
       clearTimeout(timeOutClearTyping)
       timeOutClearTyping = setTimeout(() => {
-        socket.emit("unTyping", { groupId: this.props.group._id })
+        this.actions.handleUnTyping() //call function emit unTyping
       }, numberOfSecondClearTyping)
     },
     handleUnTyping: () => {
-      socket.emit("unTyping", { groupId: this.props.group._id })
+      if(this.state.isTyping) {
+        this.setState({ isTyping: false })
+        socket.emit("unTyping", { groupId: this.props.group._id })
+      }
     },
     handleChangeMessage: (field, value) => {
       this.actions.handleOnTyping()
@@ -653,7 +660,7 @@ class ChatContainer extends Component {
             if (typeFile === "video") {
               const video = document.createElement("video")
               video.src = event.target.result
-              if(video.duration > 5) {
+              if (video.duration > 5) {
                 video.currentTime = 2
               }
 

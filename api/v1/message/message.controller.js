@@ -4,6 +4,7 @@ import TokenNotification from "../../../models/TokenNotification";
 import { pushNotificationToIOS } from "../../notifications"
 import sizeOf from "image-size"
 import path from "path"
+import User from "../../../models/User";
 
 String.prototype.replaceAll = function (search, replacement) {
   var target = this;
@@ -153,7 +154,7 @@ async function PostMessage(request, response) {
       .populate("memberReaded", "name avatar online")
       .lean()
 
-    const computeNameOfGroup = (member) => {
+    const computeNameOfGroup = async (member) => {
       let groupName
 
       console.log(member._id.toString(), decoded._id)
@@ -164,7 +165,8 @@ async function PostMessage(request, response) {
           }
         }
       } else {
-        groupName = decoded.name
+        const userPostMessage = await User.findById(decoded._id)
+        groupName = userPostMessage.name
       }
 
       return groupName
@@ -173,7 +175,7 @@ async function PostMessage(request, response) {
     for (let member of group.members) {
 
       if (group.members.length === 2) {
-        message.group.name = computeNameOfGroup(member)
+        message.group.name = await computeNameOfGroup(member)
       }
 
       console.log("message.group.name", message.group.name)

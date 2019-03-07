@@ -120,6 +120,11 @@ function renderLastMessage(group, isMe) {
   )
 }
 
+function customNameOfGroup(name) {
+  if(name.length <= 20) return name
+  else return name.slice(0, 20) + " ..."
+}
+
 function Group(props) {
   const { group, setCurrentGroup, isMe, currentUser } = props
 
@@ -128,7 +133,7 @@ function Group(props) {
       {customGroupAvatar(currentUser, group.members)}
       <div className="group-detail">
         <div style={{ display: "flex", alignItems: "center" }}>
-          <b className="group-name" onClick={() => setCurrentGroup(group)}>{group.name.slice(0, 20)} {group.numberOfMessagesUnReaded && <span style={{ color: "red" }}>({group.numberOfMessagesUnReaded})</span>}</b>
+          <b className="group-name" onClick={() => setCurrentGroup(group)}>{customNameOfGroup(group.name)} {group.numberOfMessagesUnReaded ? <span style={{ color: "red" }}>({group.numberOfMessagesUnReaded})</span> : null}</b>
           {
             group.membersTyping && group.membersTyping.length !== 0
             ? <img style={{ height: "10px", marginLeft: "3px" }} src="/images/typing.gif" />

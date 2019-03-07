@@ -149,7 +149,7 @@ class ChatContainer extends Component {
   }
 
   componentWillMount() {
-    socket = socketIOClient("localhost:3000", {
+    socket = socketIOClient("http://chatapp.stovietnam.com", {
       reconnection: true,
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
@@ -170,14 +170,11 @@ class ChatContainer extends Component {
     })
 
     socket.on("readedLastMessage", data => {
-      console.log("datadatadatadatadatadatadata", data)
       if (this.state.messages) {
         let messages = [...this.state.messages]
 
         let lastMessage = { ...messages[messages.length - 1] }
         let memberReaded = [...lastMessage.memberReaded]
-
-        console.log("lastMessage.user._id !== data.user._id", lastMessage.user._id !== data.user._id)
 
         if (lastMessage.user._id !== data.user._id) {
           if (!lastMessage.memberReaded) lastMessage.memberReaded = []
@@ -186,15 +183,11 @@ class ChatContainer extends Component {
           memberReaded.push(data.user._id)
           messages[this.state.messages.length - 1] = lastMessage
 
-          console.log("lastMessagelastMessagelastMessagelastMessagelastMessagelastMessagelastMessagelastMessagelastMessagelastMessagelastMessagelastMessagelastMessagelastMessage", lastMessage)
-
           this.setState({ messages })
 
           this.scrollToBottomOfWrapperMessages()
 
           let group
-
-          console.log(lastMessage.group)
 
           if (this.props.groups) {
             for (let groupItem of this.props.groups) {

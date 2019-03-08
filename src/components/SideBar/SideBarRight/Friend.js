@@ -1,6 +1,8 @@
 import React from "react"
 import moment from "moment"
 
+moment.locale("vi")
+
 const styles = {
   avatar: {
     width: "30px",
@@ -16,7 +18,7 @@ const styles = {
 }
 
 function customLatestTimeConnection(latestTimeConnection) {
-  return <small>{new Date(latestTimeConnection).toLocaleTimeString()} - {new Date(latestTimeConnection).toLocaleDateString()}</small>
+  return <small>{moment(new Date(latestTimeConnection)).fromNow()}</small>
 }
 
 function Friend(props) {

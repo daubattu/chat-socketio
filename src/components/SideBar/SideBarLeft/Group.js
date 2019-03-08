@@ -1,7 +1,10 @@
 import React, { Fragment } from "react"
+import moment from "moment"
+
+moment.locale("vi")
 
 function customCreatedTime(createdTime) {
-  return `${new Date(createdTime).toLocaleTimeString()} - ${new Date(createdTime).toLocaleDateString()}`
+  return moment(new Date(createdTime)).fromNow()
 }
 
 function customGroupAvatar(currentUser, members) {

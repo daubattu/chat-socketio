@@ -13,7 +13,7 @@ async function pushNotificationToIOS(token, title, message, user, group) {
   notification.sound = "ping.aiff"
   notification.alert = title
   notification.topic = "com.chatapp.go"
-  notification.payload = { message }
+  notification.payload = { message, groupId: group._id }
 
   let success = false
 

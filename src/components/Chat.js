@@ -1,8 +1,9 @@
 import React, { Fragment } from "react"
 import Messages from "./Messages";
+import { Progress } from 'antd'
 
 function Chat(props) {
-  const { group, actions, messages, message, membersTyping, isMe, openExtendTypeMessage, isLatestMessage, messageSelected, handleScroll, isLoadingLoadMoreMessage } = props
+  const { group, actions, messages, message, membersTyping, isMe, openExtendTypeMessage, percentCompleted, isLatestMessage, messageSelected, handleScroll, isLoadingLoadMoreMessage } = props
 
   const isValid = message => {
     if (message.type === "text") {
@@ -21,8 +22,8 @@ function Chat(props) {
   }
 
   const formatFileSize = size => {
-    var i = Math.floor( Math.log(size) / Math.log(1024) )
-    return ( size / Math.pow(1024, i) ).toFixed(2) * 1 + ' ' + ['B', 'kB', 'MB', 'GB', 'TB'][i]
+    var i = Math.floor(Math.log(size) / Math.log(1024))
+    return (size / Math.pow(1024, i)).toFixed(2) * 1 + ' ' + ['B', 'kB', 'MB', 'GB', 'TB'][i]
   }
 
   const previewFilesAttachment = (file, index) => {
@@ -38,16 +39,16 @@ function Chat(props) {
         <div key={index} className="item-preview-video">
           <i className="fa fa-file-video-o" aria-hidden="true"></i>
           {` `}
-          { file.file.name } - {formatFileSize(file.file.size)}
+          {file.file.name} - {formatFileSize(file.file.size)}
           <i style={{ marginLeft: "5px", cursor: "pointer" }} onClick={() => actions.handleDeleteFilesWithIndex(index)} className="fa fa-trash-o" aria-hidden="true"></i>
         </div>
       )
     } else if (message.type === "file") {
       return (
         <div key={index} className="item-preview-file">
-          <i className="fa fa-file-o" aria-hidden="true"></i> 
+          <i className="fa fa-file-o" aria-hidden="true"></i>
           {` `}
-          { file.file.name } - {formatFileSize(file.file.size)}
+          {file.file.name} - {formatFileSize(file.file.size)}
           <i style={{ marginLeft: "5px", cursor: "pointer" }} onClick={() => actions.handleDeleteFilesWithIndex(index)} className="fa fa-trash-o" aria-hidden="true"></i>
         </div>
       )
@@ -83,7 +84,7 @@ function Chat(props) {
       }
       <div style={{ marginTop: "31px", display: "flex", flexDirection: "column", justifyContent: "space-between", height: "100%" }}>
         <div id="wrapper-messages" onScroll={handleScroll} style={{ flexGrow: "1", overflow: "auto", height: "100vh" }}>
-          <Messages setMessageSelected={actions.setMessageSelected}  messageSelected={messageSelected} numberOfMember={group.members ? group.members.length : 0} isLatestMessage={isLatestMessage} isMe={isMe} messages={messages} />
+          <Messages setMessageSelected={actions.setMessageSelected} messageSelected={messageSelected} numberOfMember={group.members ? group.members.length : 0} isLatestMessage={isLatestMessage} isMe={isMe} messages={messages} />
         </div>
 
         <div>
@@ -113,7 +114,7 @@ function Chat(props) {
                       <label htmlFor="image" onClick={() => actions.handleChangeMessage("type", "image")}>
                         <i className={message.type === "image" ? "fa fa-picture-o selected" : "fa fa-picture-o"} style={{ cursor: "pointer" }} aria-hidden="true"></i>
                       </label>
-                      <input onBlur={() => console.log("Un Change")} accept="image/*" multiple onChange={event => actions.handleChangeMessageWithFile("image", event.target.files)} id="image" type="file" />
+                      <input accept="image/*" multiple onChange={event => actions.handleChangeMessageWithFile("image", event.target.files)} id="image" type="file" />
                       <label htmlFor="video" onClick={() => actions.handleChangeMessage("type", "video")}>
                         <i className={message.type === "video" ? "fa fa-video-camera selected" : "fa fa-video-camera"} style={{ margin: "0 5px", cursor: "pointer" }} aria-hidden="true"></i>
                       </label>
@@ -137,7 +138,7 @@ function Chat(props) {
             </div>
             {
               message.type !== "text" && message.files && message.files.length !== 0
-              ? <div className={"preview-files-attachment" + " " + message.type}>
+                ? <div className={"preview-files-attachment" + " " + message.type}>
                   <Fragment>
                     {
                       message.files.map((file, index) => {
@@ -149,7 +150,12 @@ function Chat(props) {
                     }
                   </Fragment>
                 </div>
-              : null
+                : null
+            }
+            {
+              percentCompleted
+                ? <Progress percent={percentCompleted} size="small" status="active" />
+                : null
             }
           </div>
         </div>

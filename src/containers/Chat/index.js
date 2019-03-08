@@ -92,14 +92,14 @@ class ChatContainer extends Component {
     deleteMemberId: null,
     page: 0,
     numberOfPage: 0,
-    isTyping: false
+    isTyping: false,
+    percentCompleted: 0
   }
 
   scrollToBottomOfWrapperMessages() {
     let wrapperMessages = document.getElementById("wrapper-messages")
     if (wrapperMessages) {
       wrapperMessages.scrollTop = wrapperMessages.scrollHeight
-      console.log("wrapperMessages.scrollTop, wrapperMessages.scrollHeight", wrapperMessages.scrollTop, wrapperMessages.scrollHeight)
     }
   }
 
@@ -129,10 +129,8 @@ class ChatContainer extends Component {
   handleScroll = () => {
     const wrapperMessages = document.getElementById("wrapper-messages")
     const page = this.state.page + 1, numberOfPage = this.state.numberOfPage
-    console.log("handleScroll", wrapperMessages)
 
     if (wrapperMessages.scrollTop === 0 && page < numberOfPage) {
-      console.log("load more message", page)
       let loading = { ...this.state.loading }
       loading.loadMoreMessage = true
       this.setState({ loading })
@@ -551,8 +549,17 @@ class ChatContainer extends Component {
       formData.append("groupId", this.props.group._id)
       formData.append("type", message.type)
 
+      config.onUploadProgress = progressEvent => {
+        let percentCompleted = Math.floor((progressEvent.loaded * 100) / progressEvent.total)
+        this.setState({ percentCompleted })
+        console.log("percentCompleted", percentCompleted)
+        // do whatever you like with the percentage complete
+        // maybe dispatch an action that will update a progress bar or something
+      }
+
       axios.post("/api/v1/messages", formData, config)
         .then(() => {
+          this.setState({ percentCompleted: 0 })
           message = {
             type: "text",
             content: null,
@@ -560,7 +567,9 @@ class ChatContainer extends Component {
           }
           this.scrollToBottomOfWrapperMessages()
           document.getElementById("message-content").focus()
-          document.querySelector("input[type='file']").value = ""
+          if(document.querySelector("input[type='file']")) {  
+            document.querySelector("input[type='file']").value = ""
+          }
 
           // xóa người này khỏi danh sách membersTyping
           const indexOfMember = _.findIndex(membersTyping, m => m._id === this.props.currentUser._id)
@@ -574,8 +583,9 @@ class ChatContainer extends Component {
               this.props.handleUpdateGroup(group, false)
             }
           }
-          this.setState({ message, membersTyping })
+          this.setState({ message, membersTyping, openExtendTypeMessage: false })
         }, () => {
+          this.setState({ percentCompleted: 0 })
           let { messages } = this.state
           let user = this.props.currentUser
 
@@ -733,7 +743,7 @@ class ChatContainer extends Component {
 
   render() {
     const { group } = this.props
-    const { openModal, loading, newMemberIds, messages, message, membersTyping, openExtendTypeMessage, messageSelected } = this.state
+    const { openModal, loading, newMemberIds, messages, message, membersTyping, openExtendTypeMessage, percentCompleted, messageSelected } = this.state
 
     return (
       <main role="main" className="col-md-6 ml-sm-auto pt-3 px-4 border-right" style={{ height: "calc(100vh - 48px)" }}>
@@ -749,6 +759,7 @@ class ChatContainer extends Component {
           group={group}
           actions={this.actions}
           messages={messages}
+          percentCompleted={percentCompleted}
         />
         <ModalMemberOfGroup
           isMe={this.isMe}

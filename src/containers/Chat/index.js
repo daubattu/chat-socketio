@@ -150,11 +150,11 @@ class ChatContainer extends Component {
 
   componentWillMount() {
     socket = socketIOClient("http://chatapp.stovietnam.com", {
-      reconnection: true,
-      reconnectionDelay: 1000,
-      reconnectionDelayMax: 5000,
-      reconnectionAttempts: Infinity
-    })
+        reconnection: true,
+        reconnectionDelay: 1000,
+        reconnectionDelayMax : 5000,
+        reconnectionAttempts: Infinity
+      })
 
     // socketIOClient("localhost:3000", {
     //   reconnection: true,
@@ -539,9 +539,8 @@ class ChatContainer extends Component {
 
           if (message.type === "video" || message.type === "image") {
             thumbnail = await resizeImage(attachment.src, attachment.file.name)
+            formData.append("thumbnails", thumbnail)            
           }
-
-          formData.append("thumbnails", thumbnail)
         }
       }
 
@@ -557,10 +556,11 @@ class ChatContainer extends Component {
           message = {
             type: "text",
             content: null,
-            files: null
+            files: []
           }
           this.scrollToBottomOfWrapperMessages()
           document.getElementById("message-content").focus()
+          document.querySelector("input[type='file']").value = ""
 
           // xóa người này khỏi danh sách membersTyping
           const indexOfMember = _.findIndex(membersTyping, m => m._id === this.props.currentUser._id)
@@ -580,8 +580,9 @@ class ChatContainer extends Component {
           let user = this.props.currentUser
 
           messages.push({ type: "text", content: "Gửi thất bại", error: true, createdTime: Date.now(), user })
+          document.querySelector("input[type='file']").value = ""
 
-          this.setState({ messages, message: { type: "text", content: null, files: null } })
+          this.setState({ messages, message: { type: "text", content: null, files: [] } })
 
           this.scrollToBottomOfWrapperMessages()
         })

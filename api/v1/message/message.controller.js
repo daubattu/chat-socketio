@@ -103,21 +103,20 @@ async function PostMessage(request, response) {
 
     if (request.body.type !== "text" && request.files) {
       let files = []
-      if (!request.body.content && request.body.type !== "image" && request.files[0]) {
-        newMessage.content = request.files[0].originalname + " - " + formatFileSize(request.files[0].size)
+      if (!request.body.content && request.body.type === "file" && request.files.attachments[0]) {
+        newMessage.content = request.files.attachments[0].originalname + " - " + formatFileSize(request.files.attachments[0].size)
       }
 
       console.log("request.files", request.files)
 
       const staticFolder = path.resolve(__dirname, "../../../public")
 
-      if (request.files.attachments && request.files.thumbnails) {
+      if (request.files.attachments) {
         for (let i = 0; i < request.files.attachments.length; i++) {
           const attachment = request.files.attachments[i]
-          const thumbnailSrc = request.files.thumbnails[i].filename
-          if (request.body.type === "image" || request.body.type === "video") {
+          if ((request.body.type === "image" || request.body.type === "video") && request.files.thumbnails) {
+            const thumbnailSrc = request.files.thumbnails[i].filename
             const demenssions = sizeOf(staticFolder + thumbnailSrc)
-            console.log("demenssions demenssionsdemenssionsdemenssionsdemenssionsdemenssionsdemenssions", demenssions)
             files.push({
               originalSrc: attachment.filename,
               thumbnailSrc,
@@ -127,7 +126,7 @@ async function PostMessage(request, response) {
           } else {
             files.push({
               originalSrc: attachment.filename,
-              thumbnailSrc,
+              thumbnailSrc: null,
               width: 0,
               height: 0
             })

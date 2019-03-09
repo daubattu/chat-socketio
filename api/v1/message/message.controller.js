@@ -86,7 +86,19 @@ async function PostMessage(request, response) {
       }
     }
 
-    const group = await Group.findById(request.body.groupId).populate("members", "username avatar name")
+    let group = await Group.findById(request.body.groupId)
+      .populate("members", "username avatar name")
+      .populate({
+        path: "lastMessage",
+        populate: {
+          path: "user",
+          select: {
+            username: 1,
+            avatar: 1,
+            name: 1
+          }
+        }
+      })
 
     if (!group) {
       return response.status(404).json({ status: 404, message: "Nhóm chát không tồn tại" })
@@ -208,8 +220,8 @@ async function PostMessage(request, response) {
             }
 
             const titleOfNotification = "Có tin nhắn mới từ " + message.group.name
-
-            pushNotificationToIOS(tokenNotification.value, titleOfNotification, messageOfNotification, member._id, group._id)
+            group.name = message.group.name
+            pushNotificationToIOS(tokenNotification.value, titleOfNotification, messageOfNotification, member._id, group)
             // console.log("Push notification to ", tokenNotification)
           }
         } else {

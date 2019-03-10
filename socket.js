@@ -17,7 +17,7 @@ const countNumberSocketOfUser = async (userId, socketId) => {
 
   if (tokenNotificationsOfUser) {
     for (let tokenNotificationOfUser of tokenNotificationsOfUser) {
-      const numberSocketOfTokenNotification = tokenNotificationOfUser.sockets ? tokenNotificationOfUser.sockets.filter(socket => socket !== socketId) : []
+      const numberSocketOfTokenNotification = tokenNotificationOfUser.sockets ? tokenNotificationOfUser.sockets.filter(socket => { if (io.sockets.sockets[socket] && socket !== socketId) return socket }) : []
       numberSocketOfUser += numberSocketOfTokenNotification.length
     }
   }

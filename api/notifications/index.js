@@ -4,16 +4,20 @@ import apn from "apn"
 import apnProvider from "./apn.js"
 import Notification from "../../models/Notification.js";
 
-async function pushNotificationToIOS(token, title, message, user, group) {
+async function pushNotificationToIOS(token, title, body, user, group) {
   const notification = new apn.Notification()
 
   // const badge = await Notification.count({ readed: false, success: true, to: user.id  })
 
   // note.badge = badge + 1
   notification.sound = "ping.aiff"
-  notification.alert = title
+  notification.alert = {
+    title,
+    body
+  }
+  
   notification.topic = "com.chatapp.go"
-  notification.payload = { message, group }
+  notification.payload = { group }
 
   let success = false
 

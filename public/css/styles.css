@@ -373,7 +373,7 @@ body {
   margin-right: 0;
 }
 .message-attachments-item.image {
-  height: 50px;
+  max-height: 50px;
   border-radius: 5px;
   margin: 5px 2px;
 }

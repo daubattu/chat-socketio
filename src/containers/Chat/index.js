@@ -284,7 +284,7 @@ class ChatContainer extends Component {
               this.props.handleUpdateGroup(group, false)
             }
           } catch (error) {
-            console.log(error)
+            console.log("catch socket on typing", error)
           }
         } else {
           membersTyping = [...this.state.membersTyping]

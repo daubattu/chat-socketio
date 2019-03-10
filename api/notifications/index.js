@@ -15,7 +15,7 @@ async function pushNotificationToIOS(token, title, body, user, group) {
     title,
     body
   }
-  
+
   notification.topic = "com.chatapp.go"
   notification.payload = { group }
 
@@ -36,7 +36,7 @@ async function pushNotificationToIOS(token, title, body, user, group) {
     user,
     group: group._id,
     title,
-    message,
+    message: body,
     success
   }).save()
 }

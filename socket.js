@@ -232,8 +232,12 @@ const socket = server => {
     })
 
     socket.on("leaveRoom", data => {
-      socket.to(data.groupId).emit('unTyping')
-      socket.leave(data.groupId)
+      if(data && data.groupId) {
+        if(socket.decoded) {
+          emitTypingOrUnTypingToGroup(socket, "unTyping", data.groupId)
+        }
+        socket.leave(data.groupId)
+      }
     })
 
     socket.on("readLastMessage", data => {

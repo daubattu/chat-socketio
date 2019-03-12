@@ -199,7 +199,7 @@ async function PostMessage(request, response) {
         if (sockets.length === 0) {
           // push notification to this token notification
           // check không push notification đến chính mình mắc dù chính mình thì sockets.length !== 0 rồi nhưng em vẫn check
-          if (decoded._id !== member._id) {
+          if (decoded._id.toString() !== member._id.toString()) {
             let messageOfNotification
 
             if (newMessage.type === "text") {

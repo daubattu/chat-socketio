@@ -22,6 +22,28 @@ async function ExistGroup(members) {
     ]
   })
   .populate("members", "username name avatar online")
+  .populate({
+    path: "lastMessage",
+    populate: {
+      path: "user",
+      select: {
+        avatar: 1,
+        name: 1,
+        online: 1
+      }
+    }
+  })
+  .populate({
+    path: "lastMessage",
+    populate: {
+      path: "memberReaded",
+      select: {
+        avatar: 1,
+        name: 1,
+        online: 1
+      }
+    }
+  })
   .lean()
 
   if(group) {

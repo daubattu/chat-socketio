@@ -1,20 +1,87 @@
 
 import User from "../../../models/User"
 
+const users = [
+  {
+    username: "user1",
+    name: "Kim Thanh Tùng",
+    email: "user1@gmail.com",
+    password: "123456",
+    avatar: "/images/user1.jpg"
+  },
+  {
+    username: "user2",
+    name: "Hoàng Đức Toàn",
+    email: "user2@gmail.com",
+    password: "123456",
+    avatar: "/images/user2.jpg"
+  },
+  {
+    username: "user3",
+    name: "Bùi Văn Nhiêm",
+    email: "user3@gmail.com",
+    password: "123456",
+    avatar: "/images/user3.jpg"
+  },
+  {
+    username: "user4",
+    name: "Trần Văn Kiên",
+    email: "user4@gmail.com",
+    password: "123456",
+    avatar: "/images/user4.jpg"
+  },
+  {
+    username: "user5",
+    name: "Trần Trung Dũng",
+    email: "user5@gmail.com",
+    password: "123456",
+    avatar: "/images/user5.jpg"
+  },
+  {
+    username: "user6",
+    name: "Phạm Khánh Hòa",
+    email: "user6@gmail.com",
+    password: "123456",
+    avatar: "/images/user6.jpg"
+  },
+  {
+    username: "user7",
+    name: "Nguyễn Hưng Khánh",
+    email: "user7@gmail.com",
+    password: "123456",
+    avatar: "/images/user7.jpg"
+  },
+  {
+    username: "user8",
+    name: "Hoàng Mai Ngọc",
+    email: "user8@gmail.com",
+    password: "123456",
+    avatar: "/images/user8.jpg"
+  },
+  {
+    username: "user9",
+    name: "Đỗ Đình Dự",
+    email: "user9@gmail.com",
+    password: "123456",
+    avatar: "/images/user9.jpg"
+  },
+  {
+    username: "user10",
+    name: "Nguyễn Hoàng Hà",
+    email: "nguyenhoangha.pro@gmail.com",
+    password: "123456",
+    avatar: "/images/user10.jpg"
+  }
+]
+
 async function InitUser (request, response) {
   await User.deleteMany({})
   let arrayPromise = []
 
-  for(let i = 0; i < 10; i++) {
+  for(let user of users) {
     arrayPromise.push(
       new Promise(resolve => {
-        let newUser = new User({
-          username: `user${i + 1}`,
-          name: `user${i + 1}`,
-          email: `user${i + 1}@gmail.com`,
-          password: "123456",
-          avatar: `/images/user${i + 1}.jpg`
-        })
+        let newUser = new User(user)
         newUser.save(error => { 
           if(error) resolve(null)
           else resolve(newUser)

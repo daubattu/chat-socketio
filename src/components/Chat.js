@@ -92,7 +92,7 @@ function Chat(props) {
             <div style={{ position: "relative" }}>
               <textarea
                 onKeyPress={event => {
-                  if (event.key === 'Enter') {
+                  if (event.key === "Enter" && !event.shiftKey) {
                     actions.handleSendMessage()
                   }
                 }}

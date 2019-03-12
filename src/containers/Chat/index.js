@@ -409,7 +409,13 @@ class ChatContainer extends Component {
         }
 
         if (this.props.group._id) {
-          this.setState({ membersTyping: [] })
+          // reset message from last group
+          let message = {
+            type: "text",
+            content: null,
+            files: []
+          }
+          this.setState({ membersTyping: [], message })
           socket.emit("leaveRoom", { groupId: this.props.group._id })
         }
       }

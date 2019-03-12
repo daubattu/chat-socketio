@@ -84,13 +84,12 @@ function Chat(props) {
       }
       <div style={{ marginTop: "31px", display: "flex", flexDirection: "column", justifyContent: "space-between", height: "100%" }}>
         <div id="wrapper-messages" onScroll={handleScroll} style={{ flexGrow: "1", overflow: "auto", height: "100vh" }}>
-          <Messages setMessageSelected={actions.setMessageSelected} messageSelected={messageSelected} numberOfMember={group.members ? group.members.length : 0} isLatestMessage={isLatestMessage} isMe={isMe} messages={messages} />
+          <Messages membersTyping={membersTyping} setMessageSelected={actions.setMessageSelected} messageSelected={messageSelected} numberOfMember={group.members ? group.members.length : 0} isLatestMessage={isLatestMessage} isMe={isMe} messages={messages} />
         </div>
 
         <div>
           <div className="input-message" style={{ marginBottom: "40px", position: "relative" }}>
             <div style={{ position: "relative" }}>
-              {membersTyping.length !== 0 && !message.content ? <img className="typing" src="/images/typing.gif" /> : null}
               <textarea
                 onKeyPress={event => {
                   if (event.key === 'Enter') {

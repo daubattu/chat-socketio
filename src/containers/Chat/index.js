@@ -18,8 +18,8 @@ const numberOfSecondClearTyping = 8000
 
 const confirm = Modal.confirm
 
-const resizeImage = async (dataUrl, fileName) => {
-  var img = document.createElement("img");
+const resizeImage = async (dataUrl, fileName, MAX_WIDTH = 480, MAX_HEIGHT = 360) => {
+  let img = document.createElement("img");
   img.src = dataUrl
 
   function getWidthHeightOfImage(img) {
@@ -30,13 +30,10 @@ const resizeImage = async (dataUrl, fileName) => {
     })
   }
 
-  var canvas = document.createElement("canvas");
-  var ctx = canvas.getContext("2d");
+  let canvas = document.createElement("canvas");
+  let context = canvas.getContext("2d");
 
-  var MAX_WIDTH = 480;
-  var MAX_HEIGHT = 480;
-
-  var { width, height } = await getWidthHeightOfImage(img)
+  let { width, height } = await getWidthHeightOfImage(img)
 
   if (width > height) {
     if (width > MAX_WIDTH) {
@@ -52,7 +49,7 @@ const resizeImage = async (dataUrl, fileName) => {
 
   canvas.width = width;
   canvas.height = height;
-  ctx.drawImage(img, 0, 0, width, height);
+  context.drawImage(img, 0, 0, width, height);
 
   let dataUrlThumbnail = canvas.toDataURL("image/jpeg");
 
@@ -99,6 +96,7 @@ class ChatContainer extends Component {
   scrollToBottomOfWrapperMessages() {
     let wrapperMessages = document.getElementById("wrapper-messages")
     if (wrapperMessages) {
+      console.log("scrollToBottomOfWrapperMessages")
       wrapperMessages.scrollTop = wrapperMessages.scrollHeight
     }
   }
@@ -148,11 +146,11 @@ class ChatContainer extends Component {
 
   componentWillMount() {
     socket = socketIOClient("http://chatapp.stovietnam.com", {
-        reconnection: true,
-        reconnectionDelay: 1000,
-        reconnectionDelayMax : 5000,
-        reconnectionAttempts: Infinity
-      })
+      reconnection: true,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+      reconnectionAttempts: Infinity
+    })
 
     // socketIOClient("localhost:3000", {
     //   reconnection: true,
@@ -296,6 +294,9 @@ class ChatContainer extends Component {
 
           document.getElementById("message-content").placeholder = ""
           this.setState({ membersTyping })
+          if (membersTyping.length === 1) {
+            this.scrollToBottomOfWrapperMessages()
+          }
         }
       }
     })
@@ -330,6 +331,10 @@ class ChatContainer extends Component {
         }
 
         this.setState({ membersTyping })
+
+        if (membersTyping.length === 0) {
+          this.scrollToBottomOfWrapperMessages()
+        }
       }
     })
 
@@ -453,13 +458,12 @@ class ChatContainer extends Component {
                 }
               }
 
-              console.log("group.lastMessagegroup.lastMessagegroup.lastMessagegroup.lastMessagegroup.lastMessagegroup.lastMessagegroup.lastMessagegroup.lastMessagegroup.lastMessagegroup.lastMessagegroup.lastMessagegroup.lastMessage", group.lastMessage)
               if (members.length === 0 || isMe) {
                 _this.props.handleDeleteGroupById(group._id)
               } else {
                 const indexOfGroup = _.findIndex(_this.props.groups, g => g._id === group._id)
 
-                if(indexOfGroup !== -1) {
+                if (indexOfGroup !== -1) {
                   _this.props.handleUpdateGroup({ ...group, members })
                 }
               }
@@ -531,13 +535,19 @@ class ChatContainer extends Component {
       let config = { headers: { "Content-Type": "multipart/form-data" } }
 
       if (message.type !== "text" && message.files && message.files.length !== 0) {
+        let originFile, thumbnailFile
+
         for (let attachment of message.files) {
-          formData.append("attachments", attachment.file)
-          let thumbnail
+          if (message.type === "image") {
+            originFile = await resizeImage(attachment.src, attachment.file.name, 1280, 720)
+            formData.append("attachments", originFile)
+          } else {
+            formData.append("attachments", attachment.file)
+          }
 
           if (message.type === "video" || message.type === "image") {
-            thumbnail = await resizeImage(attachment.src, attachment.file.name)
-            formData.append("thumbnails", thumbnail)            
+            thumbnailFile = await resizeImage(attachment.src, attachment.file.name, 480, 360)
+            formData.append("thumbnails", thumbnailFile)
           }
         }
       }
@@ -567,7 +577,7 @@ class ChatContainer extends Component {
           }
           this.scrollToBottomOfWrapperMessages()
           document.getElementById("message-content").focus()
-          if(document.querySelector("input[type='file']")) {  
+          if (document.querySelector("input[type='file']")) {
             document.querySelector("input[type='file']").value = ""
           }
 
@@ -602,7 +612,7 @@ class ChatContainer extends Component {
 
       const indexOfMemberReaded = _.findIndex(lastMessage.memberReaded, m => m._id === this.props.currentUser._id || m === this.props.currentUser._id)
 
-      if(indexOfMemberReaded === -1) {
+      if (indexOfMemberReaded === -1) {
         socket.emit("readLastMessage", { groupId: this.props.group._id })
       }
     },

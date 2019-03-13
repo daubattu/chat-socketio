@@ -215,7 +215,7 @@ async function PostMessage(request, response) {
             if (group.members.length === 2) {
               messageOfNotification = messageOfNotification.replace("Đã gửi", "Đã gửi cho bạn")
             } else {
-              messageOfNotification = (member.name ? member.name : member.username) + " " + messageOfNotification
+              messageOfNotification = message.user.name + ": " + messageOfNotification
               messageOfNotification = messageOfNotification.replace("Đã gửi", "đã gửi tới nhóm")
             }
 

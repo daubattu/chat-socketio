@@ -33,13 +33,11 @@ function Messages(props) {
           }
         </Fragment>
       }
-      <div className="item-message">
-        {
-          membersTyping && membersTyping.length !== 0
-          ? renderMemberTyping(membersTyping)
+      {
+        membersTyping && membersTyping.length !== 0
+          ? <div className="item-message">{renderMemberTyping(membersTyping)}</div>
           : null
-        }
-      </div>
+      }
     </div>
   )
 }

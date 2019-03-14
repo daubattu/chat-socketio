@@ -1,7 +1,8 @@
+import _ from "lodash"
 import Message from "../../../models/Message"
 import Group from "../../../models/Group"
 import TokenNotification from "../../../models/TokenNotification";
-import { pushNotificationToIOS } from "../../notifications"
+import { pushNotification } from "../../notifications"
 import sizeOf from "image-size"
 import path from "path"
 import User from "../../../models/User";
@@ -87,15 +88,15 @@ async function PostMessage(request, response) {
     }
 
     let group = await Group.findById(request.body.groupId)
-      .populate("members", "username avatar name")
+      .populate("members", "avatar name badges")
       .populate({
         path: "lastMessage",
         populate: {
           path: "user",
           select: {
-            username: 1,
             avatar: 1,
-            name: 1
+            name: 1,
+            online: 1
           }
         }
       })
@@ -118,8 +119,6 @@ async function PostMessage(request, response) {
       if (!request.body.content && request.body.type === "file" && request.files.attachments[0]) {
         newMessage.content = request.files.attachments[0].originalname + " - " + formatFileSize(request.files.attachments[0].size)
       }
-
-      console.log("request.files", request.files)
 
       const staticFolder = path.resolve(__dirname, "../../../public")
 
@@ -155,7 +154,7 @@ async function PostMessage(request, response) {
     await group.save()
 
     const message = await Message.findById(newMessage._id)
-      .populate("user")
+      .populate("user", "name avatar online")
       .populate({
         path: "group",
         populate: {
@@ -168,8 +167,7 @@ async function PostMessage(request, response) {
     const computeNameOfGroup = async (member) => {
       let groupName
 
-      console.log(member._id.toString(), decoded._id)
-      if (member._id.toString() === decoded._id) {
+      if (member._id.toString() === decoded._id.toString()) {
         for (let memberOfGroup of group.members) {
           if (member._id !== memberOfGroup._id) {
             groupName = memberOfGroup.name
@@ -188,8 +186,6 @@ async function PostMessage(request, response) {
       if (group.members.length === 2) {
         message.group.name = await computeNameOfGroup(member)
       }
-
-      console.log("message.group.name", message.group.name)
 
       const tokenNotifications = await TokenNotification.find({ user: member._id })
 
@@ -221,7 +217,20 @@ async function PostMessage(request, response) {
 
             const titleOfNotification = "Có tin nhắn mới từ " + message.group.name
             group.name = message.group.name
-            pushNotificationToIOS(tokenNotification.value, titleOfNotification, messageOfNotification, member._id, group)
+
+            // check group này đã có nằm trong danh sách group có tin nhắn chưa đọc hay không (trường badges)
+            const indexOfGroupInBadge = _.findIndex(member.badges, badge => badge.toString() === group._id.toString())
+
+            if(indexOfGroupInBadge === -1) {
+              member.badges = [...new Set(member.badges)]
+              member.badges.push(group._id)
+              member.markModified("badges")
+              await member.save()
+            }
+
+            if(tokenNotification.value) { 
+              pushNotification(tokenNotification.value, member, group, titleOfNotification, messageOfNotification).toIOS()
+            }
             // console.log("Push notification to ", tokenNotification)
           }
         } else {

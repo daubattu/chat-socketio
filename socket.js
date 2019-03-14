@@ -8,6 +8,7 @@ import TokenNotification from "./models/TokenNotification";
 import Group from "./models/Group";
 import Message from "./models/Message";
 import { GetNameOfPrivateGroup } from "./api/v1/group/group.utils"
+import { pushNotification } from "./api/notifications"
 
 // function đếm số lượng socket mà người dùng đang kết nối
 const countNumberSocketOfUser = async (userId, socketId) => {
@@ -31,14 +32,14 @@ const getSocketsByUserId = async userId => {
 
   try {
     const tokensNotification = await TokenNotification.find({ user: userId })
-    for(let tokenNotification of tokensNotification) {
+    for (let tokenNotification of tokensNotification) {
       sockets.push(tokenNotification.sockets)
     }
-  } catch(error) {
+  } catch (error) {
     console.log(error)
   }
 
-  return sockets  
+  return sockets
 }
 
 //function get member online in group
@@ -47,11 +48,11 @@ const membersOnlineByGroupId = async groupId => {
 
   try {
     const group = await Group.findById(groupId)
-    if(group) {
+    if (group) {
       membersOnline = await User.find({ online: true, _id: { $in: group.members } }, "_id")
       console.log(membersOnline)
     }
-  } catch(error) {
+  } catch (error) {
     console.log(error)
   }
 
@@ -61,9 +62,9 @@ const membersOnlineByGroupId = async groupId => {
 const emitTypingOrUnTypingToGroup = async (socket, eventName, groupId) => {
   const membersOnline = await membersOnlineByGroupId(groupId)
 
-  for(let member of membersOnline) {
+  for (let member of membersOnline) {
     const socketsOfMember = await getSocketsByUserId(member._id)
-    for(let socketOfMember of socketsOfMember) {
+    for (let socketOfMember of socketsOfMember) {
       const dataEmit = { groupId: groupId, user: { _id: socket.decoded._id, name: socket.decoded.name, avatar: socket.decoded.avatar } }
       socket.to(socketOfMember).emit(eventName, dataEmit)
     }
@@ -120,6 +121,30 @@ const markMessageReaded = async (groupId, socket) => {
         }
       }
     }
+  }
+}
+
+// function update badge notification, tách với func markMessageReaded vì func markMessageReaded có TH đang chat trong room thì có tin nhắn đến
+async function markReadedNotification(userID, groupID) {
+  try {
+    const user = await User.findById(userID, "badges")
+
+    const indexOfGroup = _.findIndex(user.badges, badge => badge.toString() === groupID.toString())
+
+    if (indexOfGroup !== -1) {
+      user.badges.splice(indexOfGroup, 1)
+      user.markModified("badges")
+      await user.save()
+      // Tìm tất cả token device của user đó
+      const tokenNotifications = await TokenNotification.find({ user: userID, value: { $ne: null } })
+
+      for (let tokenNotification of tokenNotifications) {
+        pushNotification(tokenNotification.value, user).toIOS()
+        console.log("update badge of user", userID, user.badges.length)
+      }
+    }
+  } catch (error) {
+    console.log("catch markReadedNotification()", error)
   }
 }
 
@@ -221,6 +246,8 @@ const socket = server => {
       try {
         if (data) {
           if (socket.decoded) {
+            console.log(socket.decoded._id, data.groupId)
+            markReadedNotification(socket.decoded._id, data.groupId)
             socket.join(data.groupId)
             socket.to(data.groupId).emit("newConnection", socket.id + " have just connected to" + data.groupId)
             markMessageReaded(data.groupId, socket)
@@ -232,8 +259,8 @@ const socket = server => {
     })
 
     socket.on("leaveRoom", data => {
-      if(data && data.groupId) {
-        if(socket.decoded) {
+      if (data && data.groupId) {
+        if (socket.decoded) {
           emitTypingOrUnTypingToGroup(socket, "unTyping", data.groupId)
         }
         socket.leave(data.groupId)
@@ -269,7 +296,7 @@ const socket = server => {
 
     socket.on("unTyping", data => {
       if (data) {
-        if(socket.decoded) {
+        if (socket.decoded) {
           emitTypingOrUnTypingToGroup(socket, "unTyping", data.groupId)
         }
       }

@@ -15,6 +15,9 @@ const UserSchema = new Schema({
   latestTimeConnection: Number,
   friends: [
     { type: Schema.Types.ObjectId, ref: "User" }
+  ],
+  badges: [
+    { type: Schema.Types.ObjectId, ref: "Group", default: [] }
   ]
 })
 

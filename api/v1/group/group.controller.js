@@ -52,7 +52,8 @@ async function GetGroup(request, response) {
           username: 1,
           avatar: 1,
           name: 1,
-          online: 1
+          online: 1,
+          latestTimeConnection: 1
         }
       })
       .sort({ updatedTime: -1 })

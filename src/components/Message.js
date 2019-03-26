@@ -48,6 +48,22 @@ function displayMessageAttachment(type, files) {
         }
       </Fragment>
     )
+  } else if (type === "voice") {
+    return (
+      <Fragment>
+        {
+          files.map((file, index) => {
+            return (
+              <audio key={index} controls>
+                <source src={file.originalSrc} />
+              </audio>
+            )
+          })
+        }
+      </Fragment>
+    )
+  } else {
+    return null
   }
 }
 

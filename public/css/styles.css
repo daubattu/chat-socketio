@@ -373,7 +373,7 @@ body {
   margin-right: 0;
 }
 .message-attachments-item.image {
-  max-height: 50px;
+  max-height: 100px;
   border-radius: 5px;
   margin: 5px 2px;
 }
@@ -386,7 +386,7 @@ body {
   color: #ccc;
 }
 
-.input-message .fa-picture-o.selected, .input-message .fa-video-camera.selected, .input-message .fa-paperclip.selected {
+.input-message .fa-picture-o.selected, .input-message .fa-video-camera.selected, .input-message .fa-paperclip.selected, .input-message .fa-microphone.selected {
   color: red;
 }
 
@@ -406,4 +406,9 @@ body {
 }
 #icon-show-more-message:hover {
   opacity: 1;
+}
+
+audio {
+  height: 40px;
+  outline: none;
 }

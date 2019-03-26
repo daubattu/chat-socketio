@@ -52,6 +52,15 @@ function Chat(props) {
           <i style={{ marginLeft: "5px", cursor: "pointer" }} onClick={() => actions.handleDeleteFilesWithIndex(index)} className="fa fa-trash-o" aria-hidden="true"></i>
         </div>
       )
+    } else if (message.type === "voice") {
+      return (
+        <div key={index} className="item-preview-file">
+          <i className="fa fa-file-audio-o" aria-hidden="true"></i>
+          {` `}
+          {file.file.name} - {formatFileSize(file.file.size)}
+          <i style={{ marginLeft: "5px", cursor: "pointer" }} onClick={() => actions.handleDeleteFilesWithIndex(index)} className="fa fa-trash-o" aria-hidden="true"></i>
+        </div>
+      )
     } else {
       return null
     }
@@ -114,12 +123,16 @@ function Chat(props) {
                         <i className={message.type === "image" ? "fa fa-picture-o selected" : "fa fa-picture-o"} style={{ cursor: "pointer" }} aria-hidden="true"></i>
                       </label>
                       <input accept="image/*" multiple onChange={event => actions.handleChangeMessageWithFile("image", event.target.files)} id="image" type="file" />
+                      <label htmlFor="voice" onClick={() => actions.handleChangeMessage("type", "voice")}>
+                        <i className={message.type === "voice" ? "fa fa-microphone selected" : "fa fa-microphone"} style={{ marginLeft: "5px", fontWeight: "bold", cursor: "pointer" }} aria-hidden="true"></i>
+                      </label>
+                      <input accept="audio/*" onChange={event => actions.handleChangeMessageWithFile("voice", event.target.files)} id="voice" type="file" />
                       <label htmlFor="video" onClick={() => actions.handleChangeMessage("type", "video")}>
-                        <i className={message.type === "video" ? "fa fa-video-camera selected" : "fa fa-video-camera"} style={{ margin: "0 5px", cursor: "pointer" }} aria-hidden="true"></i>
+                        <i className={message.type === "video" ? "fa fa-video-camera selected" : "fa fa-video-camera"} style={{ marginLeft: "5px", cursor: "pointer" }} aria-hidden="true"></i>
                       </label>
                       <input accept="video/*" onChange={event => actions.handleChangeMessageWithFile("video", event.target.files)} id="video" type="file" />
                       <label htmlFor="file" onClick={() => actions.handleChangeMessage("type", "file")}>
-                        <i className={message.type === "file" ? "fa fa-paperclip selected" : "fa fa-paperclip"} style={{ cursor: "pointer", fontWeight: "bold" }} aria-hidden="true"></i>
+                        <i className={message.type === "file" ? "fa fa-paperclip selected" : "fa fa-paperclip"} style={{ marginLeft: "5px", cursor: "pointer", fontWeight: "bold" }} aria-hidden="true"></i>
                       </label>
                       <input onChange={event => actions.handleChangeMessageWithFile("file", event.target.files)} id="file" type="file" />
                     </Fragment>

@@ -103,10 +103,13 @@ class ChatContainer extends Component {
 
   async GetMessage(group, page = 0) {
     let loading = { ...this.state.loading }
+    let params = { group, page }
 
-    await axios.get("/api/v1/messages", {
-      params: { group, page }
-    }).then(response => {
+    if(page) {
+      params.createdTime = this.state.messages[this.state.messages.length - 1].createdTime
+    }
+
+    await axios.get("/api/v1/messages", { params }).then(response => {
       let messages = response.data.messages || []
       if (page !== 0) {
         messages = [...messages, ...this.state.messages]
@@ -555,6 +558,10 @@ class ChatContainer extends Component {
             thumbnailFile = await resizeImage(attachment.src, attachment.file.name, 480, 360)
             formData.append("thumbnails", thumbnailFile)
           }
+
+          if(message.type === "voice" && attachment.duration) {
+            formData.append("duration", attachment.duration)
+          } 
         }
       }
 
@@ -724,6 +731,16 @@ class ChatContainer extends Component {
                 console.log("width, height", width, height)
                 context.drawImage(video, 0, 0, width, height)
                 message.files[i].src = canvas.toDataURL("image/jpeg")
+                message.files[i].isLoading = false
+                this.setState({ message })
+              })
+            } else if (typeFile === "voice") {
+              const audio = document.createElement("audio")
+              audio.src = event.target.result
+
+              audio.addEventListener("loadeddata", () => {
+                message.files[i].duration = parseInt(audio.duration)
+                message.files[i].src = event.target.result
                 message.files[i].isLoading = false
                 this.setState({ message })
               })

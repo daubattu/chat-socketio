@@ -9,13 +9,14 @@ const MessageSchema = new Schema({
   memberReaded: [
     { type: Schema.Types.ObjectId, ref: "User" }
   ],
-  type: { type: String, default: "text" },
+  type: { type: String, default: "text" }, // image || video || file || voice
   content: String,
   files: [{
     originalSrc: String,
     thumbnailSrc: String,
     width: Number,
-    height: Number
+    height: Number,
+    duration: Number
   }]
 })
 

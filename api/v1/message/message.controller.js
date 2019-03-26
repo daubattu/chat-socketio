@@ -28,13 +28,17 @@ async function GetMessage(request, response) {
     limit: parseInt(request.query.limit) * 0 === 0 ? parseInt(request.query.limit) : 25
   }
 
-  const props = ["group"]
+  const props = ["group", "createdTime"]
 
   let query = {}
 
   for (let prop of props) {
     if (request.query[prop]) {
-      query[prop] = request.query[prop]
+      if(prop === "createdTime") {
+        query[prop] = { $lt: request.query[prop] }    
+      } else {
+        query[prop] = request.query[prop]
+      }
     }
   }
 
@@ -65,7 +69,7 @@ async function PostMessage(request, response) {
       }
 
       if (prop === "type") {
-        if (!["text", "image", "video", "file"].includes(request.body[prop])) {
+        if (!["text", "image", "video", "file", "voice"].includes(request.body[prop])) {
           return response.status(400).json({ status: 400, message: "Hiện tại hệ thống chưa hỗ trợ kiểu tin nhắn " + request.body[prop] })
         } else {
           if (request.body[prop] === "text") {
@@ -134,6 +138,18 @@ async function PostMessage(request, response) {
               width: demenssions.width,
               height: demenssions.height
             })
+          } else if (request.body.type === "voice") {
+            if(!request.body.duration) {
+              return response.status(400).json({ status: 400, message: "Không tìm thấy trường duration" })
+            } else {
+              files.push({
+                originalSrc: attachment.filename,
+                thumbnailSrc: null,
+                width: 0,
+                height: 0,
+                duration: request.body.duration
+              })
+            }
           } else {
             files.push({
               originalSrc: attachment.filename,

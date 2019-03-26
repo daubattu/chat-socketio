@@ -7,7 +7,7 @@ import axios from "axios";
 import { handleLogOut } from "../../actions/auth"
 import { setCurrentGroup, addMembersGroup, deleteMemberOfGroup } from "../../actions/group"
 import { handleUpdateGroup, handleDeleteGroupById } from "../../actions/groups"
-import { Modal } from "antd"
+import { Modal, message } from "antd"
 import { updateFriend } from "../../actions/friends"
 import _ from "lodash"
 
@@ -148,7 +148,7 @@ class ChatContainer extends Component {
   }
 
   componentWillMount() {
-    socket = socketIOClient("http://chatapp.stovietnam.com", {
+    socket = socketIOClient("localhost:3000", {
       reconnection: true,
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
@@ -757,6 +757,12 @@ class ChatContainer extends Component {
           document.getElementById("message-content").focus()
         }
       }
+    },
+    openRecorder: () => {
+      message.open({
+        content: <h1>Hello world</h1>,
+        duration: 0
+      })
     }
   }
 

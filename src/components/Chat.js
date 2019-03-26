@@ -123,7 +123,13 @@ function Chat(props) {
                         <i className={message.type === "image" ? "fa fa-picture-o selected" : "fa fa-picture-o"} style={{ cursor: "pointer" }} aria-hidden="true"></i>
                       </label>
                       <input accept="image/*" multiple onChange={event => actions.handleChangeMessageWithFile("image", event.target.files)} id="image" type="file" />
-                      <label htmlFor="voice" onClick={() => actions.handleChangeMessage("type", "voice")}>
+                      <label 
+                      // htmlFor="voice" 
+                        onClick={
+                          () => {
+                            actions.openRecorder()
+                            // actions.handleChangeMessage("type", "voice")
+                          }}>
                         <i className={message.type === "voice" ? "fa fa-microphone selected" : "fa fa-microphone"} style={{ marginLeft: "5px", fontWeight: "bold", cursor: "pointer" }} aria-hidden="true"></i>
                       </label>
                       <input accept="audio/*" onChange={event => actions.handleChangeMessageWithFile("voice", event.target.files)} id="voice" type="file" />

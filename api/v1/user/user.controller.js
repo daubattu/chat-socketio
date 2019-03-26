@@ -60,15 +60,15 @@ const users = [
   },
   {
     username: "user9",
-    name: "Đỗ Đình Dự",
-    email: "user9@gmail.com",
+    name: "Nguyễn Hoài Nam",
+    email: "nguyenhoainam.b@gmail.com",
     password: "123456",
     avatar: "/images/user9.jpg"
   },
   {
     username: "user10",
     name: "Nguyễn Hoàng Hà",
-    email: "nguyenhoangha.pro@gmail.com",
+    email: "nguyenhoangha.biz@gmail.com",
     password: "123456",
     avatar: "/images/user10.jpg"
   }

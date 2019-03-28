@@ -53,10 +53,10 @@ const users = [
   },
   {
     username: "user8",
-    name: "Hoàng Mai Ngọc",
-    email: "user8@gmail.com",
+    name: "Bùi Thị Thanh Hương",
+    email: "huongbtt@yahoo.com",
     password: "123456",
-    avatar: "/images/user8.jpg"
+    avatar: "/images/bui-thi-thanh-huong.jpg"
   },
   {
     username: "user9",

@@ -17,7 +17,9 @@ const MessageSchema = new Schema({
     width: Number,
     height: Number,
     duration: Number
-  }]
+  }],
+  lat: Number,
+  lng: Number
 })
 
 export default mongoose.model("Message", MessageSchema)

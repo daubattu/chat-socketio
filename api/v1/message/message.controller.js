@@ -69,7 +69,7 @@ async function PostMessage(request, response) {
       }
 
       if (prop === "type") {
-        if (!["text", "image", "video", "file", "voice"].includes(request.body[prop])) {
+        if (!["text", "image", "video", "file", "voice", "map"].includes(request.body[prop])) {
           return response.status(400).json({ status: 400, message: "Hiện tại hệ thống chưa hỗ trợ kiểu tin nhắn " + request.body[prop] })
         } else {
           if (request.body[prop] === "text") {
@@ -77,6 +77,10 @@ async function PostMessage(request, response) {
               return response.status(400).json({ status: 400, message: "Tin nhắn không chứa nội dung" })
             } else if (request.body.files) {
               return response.status(400).json({ status: 400, message: "Type text không được chứa trường files" })
+            }
+          } else if(request.body[prop] === "map") {
+            if(!request.body.lat || !request.body.lng) {
+              return response.status(400).json({ status: 400, message: "Không đúng định dạng location {lat,lng}"})
             }
           } else {
             if (!request.files) {
@@ -117,6 +121,11 @@ async function PostMessage(request, response) {
       content: request.body.content,
       memberReaded: [decoded._id]
     })
+
+    if(request.body.type === "map") {
+      newMessage.lat = request.body.lat
+      newMessage.lng = request.body.lng
+    }
 
     if (request.body.type !== "text" && request.files) {
       let files = []

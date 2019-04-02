@@ -10,9 +10,14 @@ import { handleUpdateGroup, handleDeleteGroupById } from "../../actions/groups"
 import { Modal, message } from "antd"
 import { updateFriend } from "../../actions/friends"
 import _ from "lodash"
+import Recorder from "./Modals/Recorder"
 
 let socket
 let timeOutClearTyping
+let timeIntervalRecording
+
+// variable for record
+let recorder, chunks
 
 const numberOfSecondClearTyping = 8000
 
@@ -76,7 +81,8 @@ class ChatContainer extends Component {
       files: []
     },
     openModal: {
-      listMembers: false
+      listMembers: false,
+      recordAudio: false
     },
     loading: {
       addNewMember: false,
@@ -90,7 +96,11 @@ class ChatContainer extends Component {
     page: 0,
     numberOfPage: 0,
     isTyping: false,
-    percentCompleted: 0
+    percentCompleted: 0,
+    isRecording: false,
+    durationOfRecording: 0,
+    isClicking: false,
+    recordedData: []
   }
 
   scrollToBottomOfWrapperMessages() {
@@ -105,7 +115,7 @@ class ChatContainer extends Component {
     let loading = { ...this.state.loading }
     let params = { group, page }
 
-    if(page) {
+    if (page) {
       params.createdTime = this.state.messages[this.state.messages.length - 1].createdTime
     }
 
@@ -148,7 +158,7 @@ class ChatContainer extends Component {
   }
 
   componentWillMount() {
-    socket = socketIOClient("localhost:3000", {
+    socket = socketIOClient("http://chatapp.stovietnam.com", {
       reconnection: true,
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
@@ -420,6 +430,12 @@ class ChatContainer extends Component {
           }
           this.setState({ membersTyping: [], message })
           socket.emit("leaveRoom", { groupId: this.props.group._id })
+          let audios = document.getElementsByTagName("audio")
+
+          for(let audio of audios) {
+            audio.pause();
+            audio.currentTime = 0;
+          }
         }
       }
     }
@@ -494,13 +510,14 @@ class ChatContainer extends Component {
     },
     handleChangeNewMemberIds: newMemberIds => this.setState({ newMemberIds }),
     handleChangeStatusModal: modalName => {
-      let { openModal, newMemberIds } = this.state
+      let { openModal, newMemberIds, isRecording } = this.state
 
       openModal[modalName] = !openModal[modalName]
 
       if (modalName === "lisMembers") {
         newMemberIds = ""
       }
+
       this.setState({ openModal, newMemberIds })
     },
     handleChangeStateOpenExtendTypeMessage: () => {
@@ -559,9 +576,9 @@ class ChatContainer extends Component {
             formData.append("thumbnails", thumbnailFile)
           }
 
-          if(message.type === "voice" && attachment.duration) {
+          if (message.type === "voice" && attachment.duration) {
             formData.append("duration", attachment.duration)
-          } 
+          }
         }
       }
 
@@ -658,6 +675,11 @@ class ChatContainer extends Component {
           message.type = "text"
         }
       }
+
+      if(field === "type" && value !== "text" && message.files.length !== 0) {
+        message.files = []
+      }
+
       this.setState({ message })
     },
     handleDeleteFilesWithIndex: indexOfFile => {
@@ -676,6 +698,7 @@ class ChatContainer extends Component {
       this.setState({ message })
     },
     handleChangeMessageWithFile: (typeFile, files) => {
+      console.log(files)
       this.actions.handleOnTyping()
       let { message } = this.state
 
@@ -734,16 +757,6 @@ class ChatContainer extends Component {
                 message.files[i].isLoading = false
                 this.setState({ message })
               })
-            } else if (typeFile === "voice") {
-              const audio = document.createElement("audio")
-              audio.src = event.target.result
-
-              audio.addEventListener("loadeddata", () => {
-                message.files[i].duration = parseInt(audio.duration)
-                message.files[i].src = event.target.result
-                message.files[i].isLoading = false
-                this.setState({ message })
-              })
             } else {
               message.files[i].src = event.target.result
               message.files[i].isLoading = false
@@ -758,12 +771,152 @@ class ChatContainer extends Component {
         }
       }
     },
-    openRecorder: () => {
-      message.open({
-        content: <h1>Hello world</h1>,
-        duration: 0
-      })
+    changeStatusRecording: () => {
+      let { isRecording } = this.state
+      this.setState({ isRecording: !isRecording })
+      if (!isRecording) {
+        let { durationOfRecording } = this.state
+
+        timeIntervalRecording = setInterval(() => {
+          durationOfRecording += 1
+          this.setState({ durationOfRecording })
+        }, 1000)
+      }
+    },
+    handleOnClickRecording: () => {
+      if (!this.state.isRecording) {
+        navigator.mediaDevices
+          .getUserMedia({ audio: true })
+          .then(stream => {
+            this.startRecording(stream)
+            this.actions.changeStatusRecording()
+          })
+          .catch(error => {
+            console.log(error)
+            message.error("Bạn phải cấp quyền sử dụng microphone để thực hiện chức năng này", 3)
+          });
+      } else {
+        this.actions.changeStatusRecording()
+        clearInterval(timeIntervalRecording)
+        this.setState({ durationOfRecording: 0 })
+        this.endRecording()
+      }
     }
+  }
+
+  startRecording(stream) {
+    this.visualize(stream)
+    window.localStream = stream
+    chunks = [];
+    // create media recorder instance to initialize recording
+    recorder = new MediaRecorder(stream, { audioBitsPerSecond : 8000 });
+    
+    // function to be called when data is received
+    recorder.ondataavailable = e => {
+      // add stream data to chunks
+      chunks.push(e.data);
+    };
+    // start recording with 1 second time between receiving 'ondataavailable' events
+    recorder.start(1000);
+  }
+
+  endRecording() {
+    let message = { ...this.state.message }
+    this.actions.handleChangeStatusModal("recordAudio")
+    const tracks = window.localStream.getTracks() || []
+
+    for(let track of tracks) {
+      track.stop()
+    }
+
+    recorder.stop()
+    
+    let blob = new Blob(chunks, { type: 'audio/m4a' });
+    blob.lastModifiedDate = new Date();
+    blob.name = "record.m4a"
+    
+    let file = message.files[0] || {}
+
+      file.file = new File([blob], blob.name)
+      file.duration = this.state.durationOfRecording
+      file.isLoading = true
+  
+      message.files[0] = file
+      this.setState({ message })
+  
+      let audio = document.createElement("audio")
+      audio.src = URL.createObjectURL(blob)
+      audio.preload = "metadata"
+      audio.controls = true
+
+      audio.addEventListener("loadedmetadata", async () => {
+        // console.log("audio.duration", audio.duration)
+        file.src = URL.createObjectURL(blob)
+        file.isLoading = false
+        message.files[0] = file
+        this.setState({ message })
+        this.scrollToBottomOfWrapperMessages()
+        document.getElementById("message-content").focus()
+      })
+
+    // // console.log(URL.createObjectURL(blob))
+    // // audioTag.src = URL.createObjectURL(blob);
+    // console.log(blob)
+  }
+
+  visualize = (stream) => {
+    var canvas = document.getElementById("spectrum")
+    if (!canvas) return;
+
+    let audioCtx = new AudioContext()
+
+    var canvasCtx = canvas.getContext("2d");
+    var source = audioCtx.createMediaStreamSource(stream);
+
+    var analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 2048;
+    var bufferLength = analyser.frequencyBinCount;
+    var dataArray = new Uint8Array(bufferLength);
+
+    source.connect(analyser);
+
+    const draw = () => {
+      // get the canvas dimensions
+      var width = canvas.width,
+        height = canvas.height;
+
+      // ask the browser to schedule a redraw before the next repaint
+      requestAnimationFrame(draw);
+
+      // clear the canvas
+      canvasCtx.fillStyle = "#fff";
+      canvasCtx.fillRect(0, 0, width, height);
+
+      if (!this.state.isRecording) return;
+
+      canvasCtx.lineWidth = 2;
+      canvasCtx.strokeStyle = "#333";
+
+      canvasCtx.beginPath();
+
+      var sliceWidth = width * 1.0 / bufferLength;
+      var x = 0;
+
+      analyser.getByteTimeDomainData(dataArray);
+
+      for (var i = 0; i < bufferLength; i++) {
+        var v = dataArray[i] / 128.0;
+        var y = v * height / 2;
+
+        i == 0 ? canvasCtx.moveTo(x, y) : canvasCtx.lineTo(x, y);
+        x += sliceWidth;
+      }
+
+      canvasCtx.lineTo(canvas.width, canvas.height / 2);
+      canvasCtx.stroke();
+    }
+
+    draw();
   }
 
   isMe = userId => {
@@ -782,7 +935,7 @@ class ChatContainer extends Component {
 
   render() {
     const { group } = this.props
-    const { openModal, loading, newMemberIds, messages, message, membersTyping, openExtendTypeMessage, percentCompleted, messageSelected } = this.state
+    const { openModal, isRecording, durationOfRecording, loading, newMemberIds, messages, message, membersTyping, openExtendTypeMessage, percentCompleted, messageSelected } = this.state
 
     return (
       <main role="main" className="col-md-6 ml-sm-auto pt-3 px-4 border-right" style={{ height: "calc(100vh - 48px)" }}>
@@ -809,6 +962,7 @@ class ChatContainer extends Component {
           visible={openModal.listMembers}
           newMemberIds={newMemberIds}
         />
+        <Recorder actions={this.actions} visible={openModal.recordAudio} isRecording={isRecording} durationOfRecording={durationOfRecording} />
       </main>
     )
   }

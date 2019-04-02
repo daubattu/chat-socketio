@@ -123,6 +123,10 @@ async function PostMessage(request, response) {
     })
 
     if(request.body.type === "map") {
+      if(!request.body.address || !request.body.lat || !request.body.lng) {
+        return response.status(400).json({ status: 400, message: "Không đúng định dạng tin nhắn map {address: String, lat: Float, lng: Float}" })
+      }
+      newMessage.address = request.body.address
       newMessage.lat = request.body.lat
       newMessage.lng = request.body.lng
     }

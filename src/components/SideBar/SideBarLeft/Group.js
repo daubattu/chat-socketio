@@ -97,8 +97,20 @@ function customLastMessage(message) {
           Đã gửi {message.files.length} file đính kèm <b><i className="fa fa-paperclip" /></b>
         </Fragment>
       )
+    } else if (message.type === "voice") {
+      return (
+        <Fragment>
+          Đã gửi 1 tin nhắn thoại <b><i className="fa fa-microphone" /></b>
+        </Fragment>
+      )
+    } else if (message.type === "map") {
+      return (
+        <Fragment>
+          Đã gửi 1 vị trí <i className="fa fa-map-marker" />
+        </Fragment>
+      )
     } else {
-      return "Đã gửi 1 thứ gì đó hay ho"
+      return "Đã gửi 1 tin nhắn mới"
     }
   }
 }

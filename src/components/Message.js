@@ -26,7 +26,7 @@ function displayMessageAttachment(type, files) {
         {
           files.map((file, index) => {
             return (
-              <a key={index} style={{ display: "inline-block", position: "relative", cursor: "pointer" }} href={file.originalSrc} data-lity>
+              <a key={index} style={{ display: "inline-block", position: "relative", cursor: "pointer", height: "100px" }} href={file.originalSrc} data-lity>
                 <img onError={event => event.target.src = "/images/404.jpg"} src={file.thumbnailSrc} style={{ height: "50px", borderRadius: "5px" }} className="message-attachments-item video" />
                 <div style={{ position: "absolute", width: "100%", height: "100%", background: "#fff", top: 0, opacity: ".3" }}></div>
                 <Icon style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", fontSize: "30px", color: "black" }} type="play-circle" />
@@ -54,7 +54,7 @@ function displayMessageAttachment(type, files) {
         {
           files.map((file, index) => {
             return (
-              <audio key={index} controls>
+              <audio key={index} controls preload="metadata">
                 <source src={file.originalSrc} />
               </audio>
             )
@@ -98,8 +98,8 @@ function Message(props) {
       {!isMe(message.user._id) && <img src={message.user.avatar} style={{ height: "30px", width: "30px", marginRight: "5px" }} />}
       <div>
         {
-          message.content
-          &&
+          message.content || message.type === "map"
+          ?
           <Fragment>
             {/* {
               messageSelected && messageSelected._id === message._id
@@ -113,10 +113,15 @@ function Message(props) {
             {isMe(message.user._id) && !(messageSelected && messageSelected._id === message._id) ? <i id="icon-show-more-message" onClick={() => setMessageSelected(message)} style={{ marginRight: "5px", cursor: "pointer", color: "#ccc" }} className="fa fa-chevron-left" aria-hidden="true"></i> : null} */}
             <Tooltip placement={isMe(message.user._id) ? "left" : "right"} title={customCreatedTime(message.createdTime)}>
               <span className={message.error ? "item-message-content error" : "item-message-content"}>
-                {message.content}
+                {
+                  message.type === "map"
+                  ? "định dạng tin nhắn này chưa được hỗ trợ trên web"
+                  : message.content
+                }
               </span>
             </Tooltip>
           </Fragment>
+          : null
         }
         {
           message.files && message.files.length !== 0

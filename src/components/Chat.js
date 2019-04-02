@@ -3,7 +3,7 @@ import Messages from "./Messages";
 import { Progress } from 'antd'
 
 function Chat(props) {
-  const { group, actions, messages, message, membersTyping, isMe, openExtendTypeMessage, percentCompleted, isLatestMessage, messageSelected, handleScroll, isLoadingLoadMoreMessage } = props
+  const { group, actions, isReadyRecord, isRecording, messages, message, membersTyping, isMe, openExtendTypeMessage, percentCompleted, isLatestMessage, messageSelected, handleScroll, isLoadingLoadMoreMessage } = props
 
   const isValid = message => {
     if (message.type === "text") {
@@ -127,12 +127,13 @@ function Chat(props) {
                       // htmlFor="voice" 
                         onClick={
                           () => {
-                            actions.openRecorder()
+                            actions.handleChangeMessage("type", "voice")
+                            actions.handleChangeStatusModal("recordAudio")
                             // actions.handleChangeMessage("type", "voice")
                           }}>
                         <i className={message.type === "voice" ? "fa fa-microphone selected" : "fa fa-microphone"} style={{ marginLeft: "5px", fontWeight: "bold", cursor: "pointer" }} aria-hidden="true"></i>
                       </label>
-                      <input accept="audio/*" onChange={event => actions.handleChangeMessageWithFile("voice", event.target.files)} id="voice" type="file" />
+                      {/* <input accept="audio/*" onChange={event => actions.handleChangeMessageWithFile("voice", event.target.files)} id="voice" type="file" /> */}
                       <label htmlFor="video" onClick={() => actions.handleChangeMessage("type", "video")}>
                         <i className={message.type === "video" ? "fa fa-video-camera selected" : "fa fa-video-camera"} style={{ marginLeft: "5px", cursor: "pointer" }} aria-hidden="true"></i>
                       </label>

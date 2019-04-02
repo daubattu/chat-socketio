@@ -9,7 +9,7 @@ const UserSchema = new Schema({
   email: { type: String, unique: true },
   password: { type: String, default: "123456" },
   name: String,
-  avatar: { type: String, default: "/images/user-avatar.png" },
+  avatar: { type: String, default: "/images/user-default.png" },
   status: { type: Number, default: 1 },
   online: { type: Boolean, default: false },
   latestTimeConnection: Number,

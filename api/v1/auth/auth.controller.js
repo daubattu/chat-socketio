@@ -1,8 +1,37 @@
 import jwt from "jsonwebtoken"
 import User from "../../../models/User"
+import fs from "fs"
+import path from "path"
 
 import { SECRET_KEY_JWT } from "../../../configs"
 import TokenNotification from "../../../models/TokenNotification"
+import Group from "../../../models/Group";
+
+const staticFolder = path.resolve(__dirname, "../../../public/images")
+
+function uploadImages(arrayImages) {
+  let images = []
+
+  console.log("arrayImages.length", arrayImages.length)
+  for (let i = 0; i < arrayImages.length; i++) {
+    const image = arrayImages[i]
+    if (image.includes("base64")) {
+      const data = image.replace(/^data:image\/(png|gif|jpeg);base64,/, "")
+      const mime = image.match(/^data:image\/(png|gif|jpeg);base64,/)[1]
+      const timeString = new Date().getTime().toString() + i.toString()
+      const name = `${timeString}.${mime}`
+
+      images.push("/images/" + name)
+
+      try {
+        fs.writeFileSync(`${staticFolder}/${name}`, data, 'base64', error => {
+          if (error) console.log(error)
+        })
+      } catch (error) { console.log(error) }
+    }
+  }
+  return images
+}
 
 async function Login(request, response) {
   try {
@@ -94,7 +123,48 @@ async function Logout(request, response) {
   }
 }
 
+async function Signup(request, response) {
+  try {
+    const existedUser = await User.findOne({ email: request.body.email })
+
+    if(existedUser) {
+      return response.status(400).json({ status: 400, message: "Email đã được sử dụng" })
+    }
+
+    const newUser = new User({
+      username: Date.now(),
+      email: request.body.email,
+      name: request.body.name,
+      password: request.body.password,
+      avatar: uploadImages([request.body.avatar])[0]
+    })
+  
+    await newUser.save()
+  
+    const users = await User.find({ _id: { $ne: newUser._id }})
+  
+    for(let user of users) {
+      user.friends.push(newUser._id) 
+      newUser.friends.push(user._id)
+      const newGroup = new Group({
+        members: [user._id, newUser._id]
+      })
+  
+      newGroup.save()
+      user.save()    
+    }
+  
+    newUser.save()
+    return response.status(200).json({ status: 200 })
+  } catch(error) {
+    console.log(error)
+    return response.status(500).json({ status: 500, message: "Oops! Something wrong!", error })
+  }
+
+}
+
 export {
   Login,
-  Logout
+  Logout,
+  Signup
 }

@@ -3,12 +3,10 @@ import Header from "../components/Header";
 import { connect } from "react-redux"
 import { handleLogOut } from "../actions/auth"
 import { setCurrentGroup } from "../actions/group"
-import axios from "axios"
 
 class HeaderContainer extends Component {
   actions = {
     handleLogout: () => {
-      axios.get("/api/v1/auth/logout")
       this.props.handleLogOut()
       this.props.setCurrentGroup({})
       this.props.history.push("/auth/login")

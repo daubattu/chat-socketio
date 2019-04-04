@@ -1,8 +1,22 @@
 import React from "react"
+import { Menu, Dropdown, Icon } from 'antd';
+import { Link } from "react-router-dom"
 
 function Header(props) {
 
   const { actions, user } = props
+
+  const menu = (
+    <Menu>
+      <Menu.Item key="0">
+        <Link to="/auth/change-password">Đổi mật khẩu</Link>
+      </Menu.Item>
+      <Menu.Divider />
+      <Menu.Item key="1">
+        <span style={{ cursor: "pointer" }} onClick={actions.handleLogout}>Đăng xuất</span>
+      </Menu.Item>
+    </Menu>
+  );
 
   return (
     <nav className="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0">
@@ -14,7 +28,11 @@ function Header(props) {
           </span>
         </li>
         <li className="nav-item text-nowrap">
-          <span style={{ cursor: "pointer" }} className="nav-link" onClick={actions.handleLogout}>Đăng xuất</span>
+          <Dropdown overlay={menu} trigger={['click']}>
+            <span className="nav-link">
+              <Icon style={{ cursor: "pointer" }} type="bars" />
+            </span>
+          </Dropdown>
         </li>
       </ul>
     </nav>

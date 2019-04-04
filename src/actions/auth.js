@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken"
+import axios from "axios"
 
 export function setCurrentUser(tokenJWT) {
   let user = {}
@@ -27,6 +28,7 @@ export function setCurrentUser(tokenJWT) {
 
 export function handleLogOut() {
   localStorage.removeItem("tokenJWT")
+  axios.get("/api/v1/auth/logout")
   return {
     type: "AUTH_USER_LOG_OUT"
   }

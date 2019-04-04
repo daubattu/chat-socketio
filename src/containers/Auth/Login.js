@@ -20,6 +20,12 @@ class LoginContainer extends Component {
     notification[type]({ message })
   }
 
+  componentDidMount() {
+    if(this.props.auth.isAuthenticated) {
+      this.props.history.push("/")
+    }
+  }
+
   actions = {
     handleChange: event => {
       const { id, value } = event.target
@@ -71,4 +77,10 @@ class LoginContainer extends Component {
   }
 }
 
-export default connect(null, { setCurrentUser })(LoginContainer)
+function mapStateToProps(state) {
+  return {
+    auth: state.auth
+  }
+}
+
+export default connect(mapStateToProps, { setCurrentUser })(LoginContainer)

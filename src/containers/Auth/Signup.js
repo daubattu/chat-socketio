@@ -2,6 +2,7 @@ import React, { Component, Fragment } from "react"
 import Signup from "../../components/Auth/Signup"
 import axios from "axios"
 import { message } from "antd"
+import { connect } from "react-redux"
 
 class SignupContainer extends Component {
   state = {
@@ -13,6 +14,16 @@ class SignupContainer extends Component {
     },
     loading: false,
     avatarBase64: null
+  }
+
+  componentDidMount() {
+    if(this.props.auth.isAuthenticated) {
+      this.props.history.push("/")
+
+      setTimeout(() => {
+        message.error("Bạn phải đăng xuất trước khi đăng ký tài khoản mới", 3)
+      }, 2000)
+    }
   }
 
   pushNotifycation = (type, message) => {
@@ -131,4 +142,10 @@ class SignupContainer extends Component {
   }
 }
 
-export default SignupContainer
+function mapStateToProps(state) {
+  return {
+    auth: state.auth
+  }
+}
+
+export default connect(mapStateToProps, null)(SignupContainer)

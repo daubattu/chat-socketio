@@ -163,8 +163,32 @@ async function Signup(request, response) {
 
 }
 
+async function ChangePassword (request, response) {
+  let { decoded } = request
+
+  try {
+    const user = await User.findById(decoded._id)
+
+    if(!user) {
+      return response.status(404).json({ status: 404, message: "Người dùng không tồn tại" })
+    }
+
+    if(!user.comparePassword(request.body.oldPassword)) {
+      return response.status(400).json({ status: 400, message: "Mật khẩu cũ không chính xác" })
+    }
+
+    user.password = request.body.newPassword
+    user.save()
+
+    return response.status(200).json({ status: 200 })
+  } catch(error) {
+    return response.status(500).json({ status: 500, message: "Oops! Something wrong!", error })
+  }
+}
+
 export {
   Login,
   Logout,
-  Signup
+  Signup,
+  ChangePassword
 }

@@ -213,7 +213,10 @@ const socket = server => {
                     }
                   })
 
-                  const indexOfSocket = _.findIndex(tokenNotification.sockets, itemSocket => itemSocket === socket.id)
+                  const indexOfSocket = _.findIndex(tokenNotification.sockets, itemSocket => {
+                    console.log(itemSocket === socket.id)
+                    itemSocket.toString() === socket.id.toString()
+                  })
 
                   if (indexOfSocket === -1) {
                     tokenNotification.sockets.push(socket.id)

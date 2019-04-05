@@ -213,6 +213,8 @@ const socket = server => {
                     }
                   })
 
+                  // remove duplicate socket.id
+                  tokenNotification.sockets = [...new Set(tokenNotification.sockets)]
                   const indexOfSocket = _.findIndex(tokenNotification.sockets, itemSocket => {
                     console.log(itemSocket === socket.id)
                     itemSocket.toString() === socket.id.toString()
@@ -314,6 +316,8 @@ const socket = server => {
           let tokenNotification = await TokenNotification.findById(decoded.tokenNotification)
 
           if (tokenNotification && tokenNotification.sockets) {
+            // remove duplicate socket.id
+            tokenNotification.sockets = [...new Set(tokenNotification.sockets)]
             const indexOfSocket = _.findIndex(tokenNotification.sockets, itemSocket => itemSocket === socket.id)
 
             if (indexOfSocket !== -1) {

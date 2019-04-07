@@ -7,6 +7,8 @@ export default (request, response, next) => {
 
   const token = authorizationHeader ? authorizationHeader.split(" ")[1] : null
 
+  console.log("[TOKEN JWT]", token)
+
   if (token) {
     jwt.verify(token, SECRET_KEY_JWT, async (error, decoded) => {
       if (error) {

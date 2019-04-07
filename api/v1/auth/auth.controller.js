@@ -35,23 +35,23 @@ function uploadImages(arrayImages) {
 
 async function Login(request, response) {
   try {
-    let user
-    user = await User.findOne({
-      email: request.body.email
-    })
+    let user = await User.findOne({ email: request.body.email })
 
     if (user) {
       if (user.comparePassword(request.body.password)) {
-        let newTokenNotification = new TokenNotification({
-          user: user._id,
-          device: request.headers["user-agent"],
-          sockets: [],
-          value: request.body.tokenNotification || null
-        })
+        let tokenNotification = await TokenNotification.findOne({ value: request.body.tokenNotification })
+        if (!tokenNotification) {
+          tokenNotification = new TokenNotification({
+            user: user._id,
+            device: request.headers["user-agent"],
+            sockets: [],
+            value: request.body.tokenNotification || null
+          })
 
-        await newTokenNotification.save()
+          await tokenNotification.save()
+        }
 
-        if (!newTokenNotification._id) {
+        if (!tokenNotification._id) {
           return response.status(500).json({ status: 500, message: "Oops! Something wrong!", error: { message: "Lỗi mã hóa thông tin người dùng" } })
         }
 
@@ -60,7 +60,7 @@ async function Login(request, response) {
           name: user.name,
           username: user.username,
           avatar: user.avatar,
-          tokenNotification: newTokenNotification._id
+          tokenNotification: tokenNotification._id
         }, SECRET_KEY_JWT)
 
         return response.status(200).json({ status: 200, tokenJWT, user: { _id: user._id, username: user.username, avatar: user.avatar, name: user.name } })
@@ -86,8 +86,8 @@ async function Logout(request, response) {
 
     console.log(decoded, tokenNotification)
 
-    if(!tokenNotification) {
-      return response.status(404).json({ status: 404, message: "Không tìm thấy token thiết bị"})
+    if (!tokenNotification) {
+      return response.status(404).json({ status: 404, message: "Không tìm thấy token thiết bị" })
     }
 
     tokenNotification.remove()
@@ -102,7 +102,7 @@ async function Logout(request, response) {
     }
 
     console.log(numberOfSocket)
-    
+
     if (numberOfSocket === 0) {
       const friends = await User.find({ _id: { $in: user.friends }, online: true }, "")
 
@@ -133,7 +133,7 @@ async function Signup(request, response) {
   try {
     const existedUser = await User.findOne({ email: request.body.email })
 
-    if(existedUser) {
+    if (existedUser) {
       return response.status(400).json({ status: 400, message: "Email đã được sử dụng" })
     }
 
@@ -144,42 +144,42 @@ async function Signup(request, response) {
       password: request.body.password,
       avatar: uploadImages([request.body.avatar])[0]
     })
-  
+
     await newUser.save()
-  
-    const users = await User.find({ _id: { $ne: newUser._id }})
-  
-    for(let user of users) {
-      user.friends.push(newUser._id) 
+
+    const users = await User.find({ _id: { $ne: newUser._id } })
+
+    for (let user of users) {
+      user.friends.push(newUser._id)
       newUser.friends.push(user._id)
       const newGroup = new Group({
         members: [user._id, newUser._id]
       })
-  
+
       newGroup.save()
-      user.save()    
+      user.save()
     }
-  
+
     newUser.save()
     return response.status(200).json({ status: 200 })
-  } catch(error) {
+  } catch (error) {
     console.log(error)
     return response.status(500).json({ status: 500, message: "Oops! Something wrong!", error })
   }
 
 }
 
-async function ChangePassword (request, response) {
+async function ChangePassword(request, response) {
   let { decoded } = request
 
   try {
     const user = await User.findById(decoded._id)
 
-    if(!user) {
+    if (!user) {
       return response.status(404).json({ status: 404, message: "Người dùng không tồn tại" })
     }
 
-    if(!user.comparePassword(request.body.oldPassword)) {
+    if (!user.comparePassword(request.body.oldPassword)) {
       return response.status(400).json({ status: 400, message: "Mật khẩu cũ không chính xác" })
     }
 
@@ -187,7 +187,7 @@ async function ChangePassword (request, response) {
     user.save()
 
     return response.status(200).json({ status: 200 })
-  } catch(error) {
+  } catch (error) {
     return response.status(500).json({ status: 500, message: "Oops! Something wrong!", error })
   }
 }

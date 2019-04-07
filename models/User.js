@@ -51,7 +51,7 @@ UserSchema.methods.getGroupChatWithFriend = async function(friendID) {
         { members: { $size: 2 } }
       ]
     })
-    .populate("members", "username name avatar online")
+    .populate("members", "username name avatar online latestTimeConnection")
     .lean()
 
     return group

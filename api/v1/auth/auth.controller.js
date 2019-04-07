@@ -84,7 +84,13 @@ async function Logout(request, response) {
 
     const tokenNotification = await TokenNotification.findById(decoded.tokenNotification)
 
-    if (tokenNotification) tokenNotification.remove()
+    console.log(decoded, tokenNotification)
+
+    if(!tokenNotification) {
+      return response.status(404).json({ status: 404, message: "Không tìm thấy token thiết bị"})
+    }
+
+    tokenNotification.remove()
 
     let numberOfSocket = 0
     const tokenNotifications = await TokenNotification.find({ user: user._id, _id: { $ne: tokenNotification._id } })

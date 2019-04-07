@@ -39,19 +39,16 @@ async function Login(request, response) {
 
     if (user) {
       if (user.comparePassword(request.body.password)) {
-        let tokenNotification = await TokenNotification.findOne({ value: request.body.tokenNotification })
-        if (!tokenNotification) {
-          tokenNotification = new TokenNotification({
-            user: user._id,
-            device: request.headers["user-agent"],
-            sockets: [],
-            value: request.body.tokenNotification || null
-          })
+        let newTokenNotification = new TokenNotification({
+          user: user._id,
+          device: request.headers["user-agent"],
+          sockets: [],
+          value: request.body.tokenNotification || null
+        })
 
-          await tokenNotification.save()
-        }
+        await newTokenNotification.save()
 
-        if (!tokenNotification._id) {
+        if (!newTokenNotification._id) {
           return response.status(500).json({ status: 500, message: "Oops! Something wrong!", error: { message: "Lỗi mã hóa thông tin người dùng" } })
         }
 
@@ -60,7 +57,7 @@ async function Login(request, response) {
           name: user.name,
           username: user.username,
           avatar: user.avatar,
-          tokenNotification: tokenNotification._id
+          tokenNotification: newTokenNotification._id
         }, SECRET_KEY_JWT)
 
         return response.status(200).json({ status: 200, tokenJWT, user: { _id: user._id, username: user.username, avatar: user.avatar, name: user.name } })

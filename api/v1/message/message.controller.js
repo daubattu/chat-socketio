@@ -47,6 +47,16 @@ async function GetMessage(request, response) {
   const messages = await Message.find(query)
     .populate("user", "username name avatar")
     .populate("memberReaded", "username name avatar")
+    .populate({
+      path: "ref",
+      populate: {
+        path: "user",
+        select: {
+          avatar: 1,
+          name: 1
+        }
+      }
+    })
     .skip(pageOptions.page * pageOptions.limit)
     .limit(pageOptions.limit)
     .sort({ createdTime: -1 })
@@ -122,6 +132,10 @@ async function PostMessage(request, response) {
       memberReaded: [decoded._id]
     })
 
+    if(request.body.ref) {
+      newMessage.ref = request.body.ref
+    }
+
     if(request.body.type === "map") {
       if(!request.body.address || !request.body.lat || !request.body.lng) {
         return response.status(400).json({ status: 400, message: "Không đúng định dạng tin nhắn map {address: String, lat: Float, lng: Float}" })
@@ -191,6 +205,16 @@ async function PostMessage(request, response) {
         }
       })
       .populate("memberReaded", "name avatar online")
+      .populate({
+        path: "ref",
+        populate: {
+          path: "user",
+          select: {
+            avatar: 1,
+            name: 1
+          }
+        }
+      })
       .lean()
 
     const computeNameOfGroup = async (member) => {
@@ -233,6 +257,10 @@ async function PostMessage(request, response) {
               messageOfNotification = "Đã gửi " + newMessage.files.length + " bức ảnh"
             } else if (newMessage.type === "video") {
               messageOfNotification = "Đã gửi 1 video"
+            } else if (newMessage.type === "voice") {
+              messageOfNotification = "Đã gửi 1 tin nhắn thoại"
+            } else if (newMessage.type === "map") {
+              messageOfNotification = "Đã gửi 1 vị trí"
             } else { // Chắc chắn else là file vì đã check ở trên 
               messageOfNotification = "Đã gửi 1 file đính kèm"
             }

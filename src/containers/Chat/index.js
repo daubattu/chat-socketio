@@ -74,7 +74,6 @@ class ChatContainer extends Component {
   state = {
     messages: [],
     membersTyping: [],
-    messageSelected: null,
     message: {
       type: "text",
       content: null,
@@ -100,7 +99,8 @@ class ChatContainer extends Component {
     isRecording: false,
     durationOfRecording: 0,
     isClicking: false,
-    recordedData: []
+    recordedData: [],
+    refMessage: null
   }
 
   scrollToBottomOfWrapperMessages() {
@@ -442,9 +442,6 @@ class ChatContainer extends Component {
   }
 
   actions = {
-    setMessageSelected: messageSelected => {
-      this.setState({ messageSelected })
-    },
     confirmDeleteMember: (deleteMember, isMe = false) => {
       let _this = this
       let { group } = this.props
@@ -560,6 +557,10 @@ class ChatContainer extends Component {
       let formData = new FormData()
       let config = { headers: { "Content-Type": "multipart/form-data" } }
 
+      if(this.state.refMessage) {
+        formData.append("ref", this.state.refMessage._id)
+      }
+
       if (message.type !== "text" && message.files && message.files.length !== 0) {
         let originFile, thumbnailFile
 
@@ -623,7 +624,7 @@ class ChatContainer extends Component {
               this.props.handleUpdateGroup(group, false)
             }
           }
-          this.setState({ message, membersTyping, openExtendTypeMessage: false })
+          this.setState({ message, membersTyping, openExtendTypeMessage: false, refMessage: null })
         }, () => {
           this.setState({ percentCompleted: 0 })
           let { messages } = this.state
@@ -801,6 +802,10 @@ class ChatContainer extends Component {
         this.setState({ durationOfRecording: 0 })
         this.endRecording()
       }
+    },
+    setRefMessage: message => {
+      this.setState({ refMessage: message })
+      document.getElementById("message-content").focus()
     }
   }
 
@@ -858,10 +863,6 @@ class ChatContainer extends Component {
         this.scrollToBottomOfWrapperMessages()
         document.getElementById("message-content").focus()
       })
-
-    // // console.log(URL.createObjectURL(blob))
-    // // audioTag.src = URL.createObjectURL(blob);
-    // console.log(blob)
   }
 
   visualize = (stream) => {
@@ -933,16 +934,23 @@ class ChatContainer extends Component {
     return false
   }
 
+  isPrivateGroup = () => {
+    if(this.props.group.admin) {
+      return false
+    }
+    return true
+  }
+
   render() {
     const { group } = this.props
-    const { openModal, isRecording, durationOfRecording, loading, newMemberIds, messages, message, membersTyping, openExtendTypeMessage, percentCompleted, messageSelected } = this.state
+    const { openModal, refMessage, isRecording, durationOfRecording, loading, newMemberIds, messages, message, membersTyping, openExtendTypeMessage, percentCompleted } = this.state
 
     return (
       <main role="main" className="col-md-6 ml-sm-auto pt-3 px-4 border-right" style={{ height: "calc(100vh - 48px)" }}>
         <Chat
+          refMessage={refMessage}
           isLoadingLoadMoreMessage={loading.loadMoreMessage}
           handleScroll={this.handleScroll}
-          messageSelected={messageSelected}
           isLatestMessage={this.isLatestMessage}
           message={message}
           openExtendTypeMessage={openExtendTypeMessage}
@@ -952,6 +960,7 @@ class ChatContainer extends Component {
           actions={this.actions}
           messages={messages}
           percentCompleted={percentCompleted}
+          isPrivateGroup={this.isPrivateGroup()}
         />
         <ModalMemberOfGroup
           isMe={this.isMe}

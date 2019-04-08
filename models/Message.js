@@ -19,7 +19,8 @@ const MessageSchema = new Schema({
     duration: Number
   }],
   lat: Number,
-  lng: Number
+  lng: Number,
+  ref: { type: Schema.Types.ObjectId, ref: "Message" }
 })
 
 export default mongoose.model("Message", MessageSchema)

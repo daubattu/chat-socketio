@@ -1,5 +1,5 @@
 import React, { Fragment } from "react"
-import { Tooltip, Icon } from "antd"
+import { Tooltip, Icon, Menu, Dropdown } from "antd"
 
 function customCreatedTime(createdTime) {
   return `${new Date(createdTime).toLocaleTimeString()} - ${new Date(createdTime).toLocaleDateString()}`
@@ -90,53 +90,81 @@ function displayMemberReaded(message, isMe, numberOfMember, isMeFunc) {
   } else return null
 }
 
-function Message(props) {
-  const { message, isMe, isLatestMessage, numberOfMember } = props
+function renderRefMessage(refMessage, isPrivateGroup) {
+  if(!refMessage) return null
 
   return (
-    <div className={isMe(message.user._id) ? "item-message me" : "item-message"}>
-      {!isMe(message.user._id) && <img src={message.user.avatar} style={{ height: "30px", width: "30px", marginRight: "5px" }} />}
-      <div>
-        {
-          message.content || message.type === "map"
-          ?
-          <Fragment>
-            {/* {
-              messageSelected && messageSelected._id === message._id
-                ? <span style={{ marginRight: "5px", backgroundColor: "#ccc", borderRadius: "3px", padding: "5px 10px" }}>
-                    <i onClick={() => setMessageSelected(null)} style={{ cursor: "pointer" }} className="fa fa-chevron-right" aria-hidden="true"></i>
-                    <Icon style={{ margin: "0 8px", cursor: "pointer" }} type="edit" />
-                    <Icon style={{ cursor: "pointer" }} type="delete" />
-                  </span>
-                : null
-            }
-            {isMe(message.user._id) && !(messageSelected && messageSelected._id === message._id) ? <i id="icon-show-more-message" onClick={() => setMessageSelected(message)} style={{ marginRight: "5px", cursor: "pointer", color: "#ccc" }} className="fa fa-chevron-left" aria-hidden="true"></i> : null} */}
-            <Tooltip placement={isMe(message.user._id) ? "left" : "right"} title={customCreatedTime(message.createdTime)}>
-              <span className={message.error ? "item-message-content error" : "item-message-content"}>
-                {
-                  message.type === "map"
-                  ? "định dạng tin nhắn này chưa được hỗ trợ trên web"
-                  : message.content
-                }
-              </span>
-            </Tooltip>
-          </Fragment>
-          : null
-        }
-        {
-          message.files && message.files.length !== 0
-            ? <Tooltip placement={isMe(message.user._id) ? "left" : "right"} title={customCreatedTime(message.createdTime)}>
-              <div className="message-attachments">
-                {displayMessageAttachment(message.type, message.files)}
-              </div>
-            </Tooltip>
-            : null
-        }
-        <div className="member-readed-message">
-          {isLatestMessage(message._id) && displayMemberReaded(message, isMe(message.user._id), numberOfMember, isMe)}
+    <div className="quote-message-sended">
+      <div className="quote-message-sended-main">
+        <i className="fa fa-quote-left" aria-hidden="true"></i>
+        <div className="quote-message-sended-content">
+          { refMessage.content }
         </div>
-        {/* { !message.error && <small className="item-message-created-time">{customCreatedTime(message.createdTime)}</small> } */}
       </div>
+      <div>
+        <Icon type="user" /> { refMessage.user.name } | <Icon type="clock-circle" /> { customCreatedTime(refMessage.createdTime) }
+      </div>
+    </div>
+  )
+}
+
+function Message(props) {
+  const { message, isMe, setRefMessage, isLatestMessage, isPrivateGroup, numberOfMember } = props
+
+  const menu = (
+    <Menu>
+      <Menu.Item key="0">
+        <span onClick={() => setRefMessage(message)}>Trích dẫn</span>
+      </Menu.Item>
+    </Menu>
+  );
+
+  return (
+    <div id={message._id} className={isMe(message.user._id) ? "item-message me" : "item-message"}>
+      <div style={{ display: "flex" }}>
+        {!isMe(message.user._id) && <img src={message.user.avatar} style={{ height: "30px", width: "30px", marginRight: "5px" }} />}
+        <div style={{ textAlign: "left" }}>
+          <div className="item-message-created-time">{customCreatedTime(message.createdTime)}</div>
+          {
+            message.content || message.type === "map"
+            ?
+            <Fragment>
+              <Tooltip placement={isMe(message.user._id) ? "left" : "right"} title={customCreatedTime(message.createdTime)}>
+                <span className={message.error ? "item-message-content error" : "item-message-content"}>
+                  { renderRefMessage(message.ref, isPrivateGroup) }
+                  {
+                    message.type === "map"
+                    ? "định dạng tin nhắn này chưa được hỗ trợ trên web"
+                    : message.content
+                  }
+                </span>
+              </Tooltip>
+            </Fragment>
+            : null
+          }
+          {
+            message.files && message.files.length !== 0
+              ? <Tooltip placement={isMe(message.user._id) ? "left" : "right"} title={customCreatedTime(message.createdTime)}>
+                <div className="message-attachments">
+                  {displayMessageAttachment(message.type, message.files)}
+                </div>
+              </Tooltip>
+              : null
+          }
+          <div className="member-readed-message">
+            {isLatestMessage(message._id) && displayMemberReaded(message, isMe(message.user._id), numberOfMember, isMe)}
+          </div>
+          {/* { !message.error && <small className="item-message-created-time">{customCreatedTime(message.createdTime)}</small> } */}
+        </div>
+      </div>
+      { 
+        !isMe(message.user._id) && message.type === "text"
+        ? 
+        <Dropdown overlay={menu} trigger={['click']} placement="bottomRight">
+          <Icon className="icon-option-message" type="down-square" /> 
+        </Dropdown>
+        : null
+      }
     </div>
   )
 }

@@ -139,6 +139,15 @@ body {
   transform: translateY(-50%);
 }
 
+textarea#message-content {
+  width: 100%;
+  border: 0;
+  resize: none;
+  outline: none;
+  display: block;
+  height: 100%;
+}
+
 .item-message {
   padding: 5px 10px;
   border-radius: 3px;
@@ -146,15 +155,57 @@ body {
   float: left;
   margin-bottom: 5px;
   display: flex;
+  width: 100%;
+  justify-content: space-between;
+  position: relative;
 }
+.item-message .item-message-created-time {
+  font-size: 65%;
+}
+.item-message .member-readed-message {
+  text-align: left
+}
+.item-message.me .member-readed-message {
+  text-align: right
+}
+.item-message:hover .icon-option-message{
+  display: block;
+}
+
+.item-message .icon-option-message {
+  display: none;
+  cursor: pointer;
+  position: absolute;
+  right: 10px;
+}
+
+.quote-message-sended {
+  font-size: 80%;
+  border-bottom: 1px solid;
+  padding-bottom: 3px;
+}
+.item-message.me .quote-message-sended {
+  border-bottom-color: #fff;
+}
+.quote-message-sended-main {
+  font-style: italic;
+  display: flex;
+  position: relative;
+}
+.quote-message-sended-content {
+  width: 100%;
+}
+.quote-message-sended-main .fa.fa-quote-left{
+  margin-right: 3px;
+}
+
 .item-message img {
   border-radius: 50%;
 }
 .item-message.me {
-  float: right;
-  clear: both;
   margin-bottom: 5px;
-  text-align: right;
+  display: flex;
+  justify-content: flex-end;
 }
 
 .item-message.me .item-message-content {
@@ -162,6 +213,7 @@ body {
   padding: 5px 10px;
   border-radius: 3px;
   color: #fff;
+  float: right;
 }
 
 .item-message .item-message-content {
@@ -178,8 +230,6 @@ body {
 }
 
 .item-message .item-message-created-time {
-  display: block;
-  margin-top: 5px;
   text-align: left;
   font-size: 65%;
 }
@@ -377,7 +427,11 @@ body {
   border-radius: 5px;
   margin: 5px 2px;
 }
-
+.input-message {
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  padding: 5px;
+}
 .input-message .fa-paper-plane-o.valid {
   color: #3578e5;
 }
@@ -388,6 +442,26 @@ body {
 
 .input-message .fa-picture-o.selected, .input-message .fa-video-camera.selected, .input-message .fa-paperclip.selected, .input-message .fa-microphone.selected {
   color: red;
+}
+.ref-message {
+  display: flex;
+}
+.ref-message .ref-message-quote-content {
+  position: relative;
+  margin-right: 8px;
+  width: 100%;
+  display: flex;
+}
+.ref-message-icon-remove .anticon.anticon-close-square { 
+  cursor: pointer;
+  transition: transform .15s linear;
+}
+.ref-message-icon-remove .anticon.anticon-close-square:hover { 
+  color: red;
+  transform: scale(1.05)
+}
+.ref-message .fa.fa-quote-left{
+  margin-right: 3px;
 }
 
 .item-list-friends {

@@ -1,9 +1,25 @@
 import React, { Fragment } from "react"
 import Messages from "./Messages";
 import { Progress } from 'antd'
+import RefMessage from "./RefMessage";
+
+function renderMemberTyping(members) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", marginBottom: "5px" }}>
+      {
+        members.map((member, index) => {
+          return (
+            <img key={member._id || index} src={member.avatar} style={{ height: "30px", width: "30px", borderRadius: "50%",  marginRight: "5px" }} />
+          )
+        })
+      }
+      <img style={{ clear: "both", display: "block", height: "20px", borderRadius: 0 }} src="/images/typing.gif" />
+    </div>
+  )
+}
 
 function Chat(props) {
-  const { group, actions, isReadyRecord, isRecording, messages, message, membersTyping, isMe, openExtendTypeMessage, percentCompleted, isLatestMessage, messageSelected, handleScroll, isLoadingLoadMoreMessage } = props
+  const { group, actions, isPrivateGroup, refMessage, messages, message, membersTyping, isMe, openExtendTypeMessage, percentCompleted, isLatestMessage, messageSelected, handleScroll, isLoadingLoadMoreMessage } = props
 
   const isValid = message => {
     if (message.type === "text") {
@@ -93,11 +109,22 @@ function Chat(props) {
       }
       <div style={{ marginTop: "31px", display: "flex", flexDirection: "column", justifyContent: "space-between", height: "100%" }}>
         <div id="wrapper-messages" onScroll={handleScroll} style={{ flexGrow: "1", overflow: "auto", height: "100vh" }}>
-          <Messages membersTyping={membersTyping} setMessageSelected={actions.setMessageSelected} messageSelected={messageSelected} numberOfMember={group.members ? group.members.length : 0} isLatestMessage={isLatestMessage} isMe={isMe} messages={messages} />
+          <Messages isPrivateGroup={isPrivateGroup} setRefMessage={actions.setRefMessage} numberOfMember={group.members ? group.members.length : 0} isLatestMessage={isLatestMessage} isMe={isMe} messages={messages} />
         </div>
 
-        <div>
-          <div className="input-message" style={{ marginBottom: "40px", position: "relative" }}>
+        <div className="input-message" style={{ marginBottom: "40px", position: "relative" }}>
+            {
+              membersTyping && membersTyping.length !== 0
+                ? renderMemberTyping(membersTyping)
+                : null
+            }
+            {
+              refMessage
+              &&
+              <div>
+                <RefMessage setRefMessage={actions.setRefMessage} message={refMessage} />
+              </div>
+            }
             <div style={{ position: "relative" }}>
               <textarea
                 onKeyPress={event => {
@@ -110,10 +137,9 @@ function Chat(props) {
                 onFocus={actions.handleReadLastMessage}
                 onBlur={actions.handleUnTyping}
                 onChange={event => actions.handleChangeMessage("content", event.target.value)}
-                className="form-control"
                 placeholder="Nhập tin nhắn"
               />
-              <div style={{ position: "absolute", top: "50%", transform: "translateY(-50%)", right: "15px", display: "flex", alignItems: "center" }}>
+              <div style={{ position: "absolute", top: "50%", transform: "translateY(-50%)", right: 0, display: "flex", alignItems: "center" }}>
                 <div className={openExtendTypeMessage ? "extend-type-message is-extend" : "extend-type-message"}>
                   {
                     openExtendTypeMessage
@@ -152,7 +178,7 @@ function Chat(props) {
                       actions.handleChangeStateOpenExtendTypeMessage
                     }
                   }}
-                  style={{ cursor: "pointer", marginLeft: "10px" }} onClick={actions.handleSendMessage} className={isValid(message)} aria-hidden="true"></i>
+                  style={{ cursor: "pointer", marginLeft: "5px" }} onClick={actions.handleSendMessage} className={isValid(message)} aria-hidden="true"></i>
               </div>
             </div>
             {
@@ -177,7 +203,6 @@ function Chat(props) {
                 : null
             }
           </div>
-        </div>
       </div>
     </Fragment>
   )

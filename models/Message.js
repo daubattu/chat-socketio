@@ -12,6 +12,7 @@ const MessageSchema = new Schema({
   type: { type: String, default: "text" }, // image || video || file || voice
   content: String,
   files: [{
+    name: String,
     originalSrc: String,
     thumbnailSrc: String,
     width: Number,

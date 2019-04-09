@@ -147,9 +147,6 @@ async function PostMessage(request, response) {
 
     if (request.body.type !== "text" && request.files) {
       let files = []
-      if (!request.body.content && request.body.type === "file" && request.files.attachments[0]) {
-        newMessage.content = request.files.attachments[0].originalname + " - " + formatFileSize(request.files.attachments[0].size)
-      }
 
       const staticFolder = path.resolve(__dirname, "../../../public")
 
@@ -160,6 +157,7 @@ async function PostMessage(request, response) {
             const thumbnailSrc = request.files.thumbnails[i].filename
             const demenssions = sizeOf(staticFolder + thumbnailSrc)
             files.push({
+              name: attachment.originalname + " - " + formatFileSize(attachment.size),
               originalSrc: attachment.filename,
               thumbnailSrc,
               width: demenssions.width,
@@ -170,6 +168,7 @@ async function PostMessage(request, response) {
               return response.status(400).json({ status: 400, message: "Không tìm thấy trường duration" })
             } else {
               files.push({
+                name: attachment.originalname + " - " + formatFileSize(attachment.size),
                 originalSrc: attachment.filename,
                 thumbnailSrc: null,
                 width: 0,
@@ -179,6 +178,7 @@ async function PostMessage(request, response) {
             }
           } else {
             files.push({
+              name: attachment.originalname + " - " + formatFileSize(attachment.size),
               originalSrc: attachment.filename,
               thumbnailSrc: null,
               width: 0,
@@ -265,11 +265,11 @@ async function PostMessage(request, response) {
               messageOfNotification = "Đã gửi 1 file đính kèm"
             }
 
-            if (group.members.length === 2) {
-              messageOfNotification = messageOfNotification.replace("Đã gửi", "Đã gửi cho bạn")
-            } else {
+            if (group.admin) {
               messageOfNotification = message.user.name + ": " + messageOfNotification
               messageOfNotification = messageOfNotification.replace("Đã gửi", "đã gửi tới nhóm")
+            } else {
+              messageOfNotification = messageOfNotification.replace("Đã gửi", "Đã gửi cho bạn")
             }
 
             const titleOfNotification = "Có tin nhắn mới từ " + message.group.name
@@ -288,7 +288,6 @@ async function PostMessage(request, response) {
             if(tokenNotification.value) { 
               pushNotification(tokenNotification.value, member, group, titleOfNotification, messageOfNotification).toIOS()
             }
-            // console.log("Push notification to ", tokenNotification)
           }
         } else {
           for (let socket of sockets) {
@@ -296,8 +295,6 @@ async function PostMessage(request, response) {
           }
         }
       }
-
-      // io.sockets.to(member._id).emit("receiveNewMessage", message)
     }
 
     return response.status(200).json({ status: 200, message: newMessage })

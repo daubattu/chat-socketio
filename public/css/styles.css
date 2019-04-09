@@ -163,7 +163,8 @@ textarea#message-content {
   font-size: 65%;
 }
 .item-message .member-readed-message {
-  text-align: left
+  text-align: left;
+  clear: both;
 }
 .item-message.me .member-readed-message {
   text-align: right
@@ -236,6 +237,7 @@ textarea#message-content {
 
 .item-message.me .item-message-created-time {
   text-align: right;
+  margin-bottom: 2px;
 }
 
 .extend-type-message {
@@ -370,10 +372,6 @@ textarea#message-content {
   display: none;
 }
 
-.preview-files-attachment {
-  padding: .375rem .75rem;
-}
-
 .item-preview-image {
   position: relative;
   border-radius: 5px;
@@ -422,11 +420,11 @@ textarea#message-content {
 .message-attachments .image:last-child {
   margin-right: 0;
 }
-.message-attachments-item.image {
+.message-attachments-item.image, .message-attachments-item.video {
   max-height: 100px;
   border-radius: 5px;
-  margin: 5px 2px;
 }
+
 .input-message {
   border: 1px solid #ccc;
   border-radius: 3px;

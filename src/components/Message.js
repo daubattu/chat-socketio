@@ -5,7 +5,7 @@ function customCreatedTime(createdTime) {
   return `${new Date(createdTime).toLocaleTimeString()} - ${new Date(createdTime).toLocaleDateString()}`
 }
 
-function displayMessageAttachment(type, files) {
+function displayMessageAttachment(type, files, isMe) {
   if (type === "image") {
     return (
       <Fragment>
@@ -26,8 +26,8 @@ function displayMessageAttachment(type, files) {
         {
           files.map((file, index) => {
             return (
-              <a key={index} style={{ display: "inline-block", position: "relative", cursor: "pointer", height: "100px" }} href={file.originalSrc} data-lity>
-                <img onError={event => event.target.src = "/images/404.jpg"} src={file.thumbnailSrc} style={{ height: "50px", borderRadius: "5px" }} className="message-attachments-item video" />
+              <a key={index} style={{ display: "inline-block", position: "relative", cursor: "pointer", maxHeight: "100px", float: isMe && "right" }} href={file.originalSrc} data-lity>
+                <img onError={event => event.target.src = "/images/404.jpg"} src={file.thumbnailSrc} className="message-attachments-item video" />
                 <div style={{ position: "absolute", width: "100%", height: "100%", background: "#fff", top: 0, opacity: ".3" }}></div>
                 <Icon style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", fontSize: "30px", color: "black" }} type="play-circle" />
               </a>
@@ -41,8 +41,15 @@ function displayMessageAttachment(type, files) {
       <Fragment>
         {
           files.map((file, index) => {
+            if(!file.name) return null
             return (
-              <a download key={index} href={file.originalSrc}><i className="fa fa-download" aria-hidden="true"></i></a>
+              <a download key={index} href={file.originalSrc}>
+                {
+                  isMe
+                  ? <Fragment><i className="fa fa-paperclip" aria-hidden="true"></i> { file.name }</Fragment>
+                  : <Fragment>{ file.name } <i className="fa fa-paperclip" aria-hidden="true"></i></Fragment>
+                }
+              </a>
             )
           })
         }
@@ -91,18 +98,18 @@ function displayMemberReaded(message, isMe, numberOfMember, isMeFunc) {
 }
 
 function renderRefMessage(refMessage, isPrivateGroup) {
-  if(!refMessage) return null
+  if (!refMessage) return null
 
   return (
     <div className="quote-message-sended">
       <div className="quote-message-sended-main">
         <i className="fa fa-quote-left" aria-hidden="true"></i>
         <div className="quote-message-sended-content">
-          { refMessage.content }
+          {refMessage.content}
         </div>
       </div>
       <div>
-        <Icon type="user" /> { refMessage.user.name } | <Icon type="clock-circle" /> { customCreatedTime(refMessage.createdTime) }
+        <Icon type="user" /> {refMessage.user.name} | <Icon type="clock-circle" /> {customCreatedTime(refMessage.createdTime)}
       </div>
     </div>
   )
@@ -127,43 +134,34 @@ function Message(props) {
           <div className="item-message-created-time">{customCreatedTime(message.createdTime)}</div>
           {
             message.content || message.type === "map"
-            ?
-            <Fragment>
-              <Tooltip placement={isMe(message.user._id) ? "left" : "right"} title={customCreatedTime(message.createdTime)}>
-                <span className={message.error ? "item-message-content error" : "item-message-content"}>
-                  { renderRefMessage(message.ref, isPrivateGroup) }
-                  {
-                    message.type === "map"
+              ? <span className={message.error ? "item-message-content error" : "item-message-content"}>
+                {renderRefMessage(message.ref, isPrivateGroup)}
+                {
+                  message.type === "map"
                     ? "định dạng tin nhắn này chưa được hỗ trợ trên web"
                     : message.content
-                  }
-                </span>
-              </Tooltip>
-            </Fragment>
-            : null
+                }
+              </span>
+              : null
           }
           {
             message.files && message.files.length !== 0
-              ? <Tooltip placement={isMe(message.user._id) ? "left" : "right"} title={customCreatedTime(message.createdTime)}>
-                <div className="message-attachments">
-                  {displayMessageAttachment(message.type, message.files)}
+              ? <div className="message-attachments">
+                  {displayMessageAttachment(message.type, message.files, isMe(message.user._id))}
                 </div>
-              </Tooltip>
               : null
           }
           <div className="member-readed-message">
             {isLatestMessage(message._id) && displayMemberReaded(message, isMe(message.user._id), numberOfMember, isMe)}
           </div>
-          {/* { !message.error && <small className="item-message-created-time">{customCreatedTime(message.createdTime)}</small> } */}
         </div>
       </div>
-      { 
+      {
         !isMe(message.user._id) && message.type === "text"
-        ? 
-        <Dropdown overlay={menu} trigger={['click']} placement="bottomRight">
-          <Icon className="icon-option-message" type="down-square" /> 
-        </Dropdown>
-        : null
+          ? <Dropdown overlay={menu} trigger={['click']} placement="bottomRight">
+              <Icon className="icon-option-message" type="down-square" />
+            </Dropdown>
+          : null
       }
     </div>
   )

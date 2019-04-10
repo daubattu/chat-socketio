@@ -240,6 +240,7 @@ async function PostMessage(request, response) {
         message.group.name = await computeNameOfGroup(member)
       }
 
+      let tokenDeviceSended = [] // mảng check xem đã gửi notification đến device này chưa
       const tokenNotifications = await TokenNotification.find({ user: member._id })
 
       for (let tokenNotification of tokenNotifications) {
@@ -272,7 +273,7 @@ async function PostMessage(request, response) {
               messageOfNotification = messageOfNotification.replace("Đã gửi", "Đã gửi cho bạn")
             }
 
-            const titleOfNotification = "Có tin nhắn mới từ " + message.group.name
+            const titleOfNotification =  message.group.name
             group.name = message.group.name
 
             // check group này đã có nằm trong danh sách group có tin nhắn chưa đọc hay không (trường badges)
@@ -286,7 +287,10 @@ async function PostMessage(request, response) {
             }
 
             if(tokenNotification.value) { 
-              pushNotification(tokenNotification.value, member, group, titleOfNotification, messageOfNotification).toIOS()
+              if(tokenDeviceSended.indexOf(tokenNotification.value) === -1) {
+                tokenDeviceSended.push(tokenNotification)
+                pushNotification(tokenNotification.value, member, group, titleOfNotification, messageOfNotification).toIOS()
+              } 
             }
           }
         } else {

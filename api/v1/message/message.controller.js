@@ -288,8 +288,8 @@ async function PostMessage(request, response) {
 
             if(tokenNotification.value) { 
               if(tokenDeviceSended.indexOf(tokenNotification.value) === -1) {
-                tokenDeviceSended.push(tokenNotification)
-                pushNotification(tokenNotification.value, member, group, titleOfNotification, messageOfNotification).toIOS()
+                tokenDeviceSended.push(tokenNotification.value)
+                pushNotification(tokenNotification, member, group, titleOfNotification, messageOfNotification).toIOS()
               } 
             }
           }

@@ -2,8 +2,9 @@ import apn from "apn"
 import apnProvider from "./apn.js"
 import Notification from "../../models/Notification.js";
 
-function pushNotification(tokenDevice, user, group = null, title = null, message = null) {
+function pushNotification(tokenNotification, user, group = null, title = null, message = null) {
 
+  let tokenDevice = tokenNotification.value
   let success = false
 
   const saveNewNotification = status => {
@@ -42,7 +43,7 @@ function pushNotification(tokenDevice, user, group = null, title = null, message
             success = true
             console.log("push notification success", tokenDevice)
           } else {
-            console.log("push notification error", result.failed)
+            console.log("push notification error", result.failed, tokenNotification)
           }
         })
 

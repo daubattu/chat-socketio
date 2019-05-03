@@ -43,7 +43,12 @@ function pushNotification(tokenNotification, user, group = null, title = null, m
             success = true
             console.log("push notification success", tokenDevice)
           } else {
-            console.log("push notification error", result.failed, tokenNotification)
+            console.log("push notification error", result.failed)
+            let rsl = result.failed[0]
+            if (rsl.status === 400 && rsl.response.reason === 'BadDeviceToken') {
+              tokenNotification.remove()
+              console.log("remove device id", tokenDevice)
+            }
           }
         })
 

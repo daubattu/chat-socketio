@@ -5,7 +5,7 @@ import { SECRET_KEY_JWT } from "../configs"
 export default (request, response, next) => {
   const authorizationHeader = request.headers["authorization"]
 
-  const token = authorizationHeader ? authorizationHeader.split(" ")[1] : null
+  const token = authorizationHeader ? authorizationHeader.split(" ")[1] : request.query.token;
 
   console.log("[TOKEN JWT]", token)
 

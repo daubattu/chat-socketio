@@ -158,7 +158,9 @@ class ChatContainer extends Component {
   }
 
   componentWillMount() {
-    socket = socketIOClient("http://chatapp.stovietnam.com", {
+    let socketUrl = 'https://chat.stovietnam.com';
+    // let socketUrl = 'http://localhost:3000';
+    socket = socketIOClient(socketUrl, {
       reconnection: true,
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,

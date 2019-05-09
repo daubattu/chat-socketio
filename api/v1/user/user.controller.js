@@ -71,6 +71,12 @@ const users = [
     email: "nguyenhoangha.biz@gmail.com",
     password: "123456",
     avatar: "/images/user10.jpg"
+  },{
+    username: "user11",
+    name: "Bùi Như Lạc",
+    email: "user11@gmail.com",
+    password: "123456",
+    avatar: "/images/user10.jpg"
   }
 ]
 
